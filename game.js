@@ -2233,7 +2233,7 @@
     let y2 = y1 + 62;
     if (sn) { button(36, y2, AW - 72, 42, 'CONTINUE RUN  -  ROOM ' + Math.floor(sn.room), () => continueRun(), { col: '#3f8fa8', size: 14, label: 'continue' }); y2 += 50; }
     const bw = (AW - 72 - 16) / 3;
-    [['SHOP', () => { shopTab = 0; shopChar = sel; shopPage = 0; state = 'shop'; }, 'shop'], ['CODEX', () => { codexPage = 0; state = 'codex'; }, 'codex'], ['TROPHIES', () => { state = 'achv'; }, 'trophies']].forEach(([lab, cb, id], i) => button(36 + i * (bw + 8), y2, bw, 40, lab, cb, { col: '#5a7a6a', size: 12, label: id }));
+    [['SHOP', () => { shopTab = 0; shopChar = sel; shopPage = 0; state = 'shop'; }, 'shop'], ['UPGRADES', () => { codexPage = 0; state = 'codex'; }, 'codex'], ['TROPHIES', () => { state = 'achv'; }, 'trophies']].forEach(([lab, cb, id], i) => button(36 + i * (bw + 8), y2, bw, 40, lab, cb, { col: '#5a7a6a', size: 12, label: id }));
     tabBar('menu');
   }
 
@@ -2279,7 +2279,7 @@
   // ---------- upgrade encyclopedia ----------
   function drawCodex(now) {
     drawLabBg(now, 0.75);
-    goldTxt('UPGRADES CODEX', AW / 2, 36, 26, 2); ornament(AW / 2, 58, 180);
+    goldTxt('UPGRADES', AW / 2, 36, 26, 2); ornament(AW / 2, 58, 180);
     const wk = CHARS[sel].weapon, all = UPG.map(u => u).concat(EVO.map(e => ({ id: e.id, n: e.n, d: e.d, t: e.w, r: 4, evo: true })));
     const list = codexMine ? all.filter(u => u.t === ALL || u.t.includes(wk)) : all, per = 6, pages = Math.max(1, Math.ceil(list.length / per));
     codexPage = clamp(codexPage, 0, pages - 1);
