@@ -1,0 +1,2 @@
+  html, body { margin: 0; height: 100%; background: #1b1038; overflow: hidden; overscroll-behavior: none; }
+  canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
