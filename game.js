@@ -2,7 +2,7 @@
 // Drag anywhere with your thumb to move. Your monkey starts at the bottom, opps drop in from the top, and it auto-fires.
 (() => {
   const cv = document.getElementById('c'); let ctx = cv.getContext('2d'); const mainCtx = ctx;
-  let W, H, S, AW, AH, dpr, hudY = 44, UIY = 0;
+  let W, H, S, AW, AH, dpr, hudY = 44, UIY = 0, UIB = 14;
   let TOP = 96, BOT = 16;                 // arena edges: top clears the HUD and notch, bottom clears the home bar
   const PAD = 16;
   function resize() {
@@ -12,7 +12,7 @@
     AW = W / S; AH = H / S;
     const probe = document.getElementById('probe'), cs = probe ? getComputedStyle(probe) : null;      // phone notch and home bar
     const sat = cs ? (parseFloat(cs.paddingTop) || 0) / S : 0, sab = cs ? (parseFloat(cs.paddingBottom) || 0) / S : 0;
-    hudY = Math.max(30, sat + 24); TOP = hudY + 62; BOT = Math.max(14, sab + 8); UIY = Math.max(0, sat - 20);
+    hudY = Math.max(30, sat + 24); TOP = hudY + 62; BOT = Math.max(8, sab * 0.3); UIB = Math.max(14, sab + 8); UIY = Math.max(0, sat - 20);
     cv.width = W * dpr; cv.height = H * dpr;
   }
   const onResize = () => {
@@ -1527,11 +1527,11 @@
     }
     const pages = Math.ceil(CHARS.length / SHOP_PAGE);
     if (shopTab === 0 && pages > 1) {
-      button(12, AH - UIY - BOT - 52, 56, 48, '<', () => { shopPage = (shopPage + pages - 1) % pages; }, { col: '#4a3a7a', size: 22, label: 'page-prev' });
-      button(AW - 68, AH - UIY - BOT - 52, 56, 48, '>', () => { shopPage = (shopPage + 1) % pages; }, { col: '#4a3a7a', size: 22, label: 'page-next' });
-      txt('Page ' + (shopPage + 1) + ' of ' + pages, AW / 2, AH - UIY - BOT - 66, 11, '#9d8fd0');
+      button(12, AH - UIY - UIB - 52, 56, 48, '<', () => { shopPage = (shopPage + pages - 1) % pages; }, { col: '#4a3a7a', size: 22, label: 'page-prev' });
+      button(AW - 68, AH - UIY - UIB - 52, 56, 48, '>', () => { shopPage = (shopPage + 1) % pages; }, { col: '#4a3a7a', size: 22, label: 'page-next' });
+      txt('Page ' + (shopPage + 1) + ' of ' + pages, AW / 2, AH - UIY - UIB - 66, 11, '#9d8fd0');
     }
-    button(80, AH - UIY - BOT - 52, AW - 160, 48, 'BACK', () => { state = 'menu'; sel = shopTab === 1 ? shopChar : sel; save.sel = sel; persist(); }, { col: '#9b86d6', size: 18, label: 'back' });
+    button(80, AH - UIY - UIB - 52, AW - 160, 48, 'BACK', () => { state = 'menu'; sel = shopTab === 1 ? shopChar : sel; save.sel = sel; persist(); }, { col: '#9b86d6', size: 18, label: 'back' });
   }
 
   function drawPause() {
