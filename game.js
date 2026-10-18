@@ -12,7 +12,7 @@
     AW = W / S; AH = H / S;
     const probe = document.getElementById('probe'), cs = probe ? getComputedStyle(probe) : null;      // phone notch and home bar
     const sat = cs ? (parseFloat(cs.paddingTop) || 0) / S : 0, sab = cs ? (parseFloat(cs.paddingBottom) || 0) / S : 0;
-    hudY = Math.max(30, sat + 24); TOP = hudY + 62; BOT = Math.max(8, sab * 0.3); UIB = Math.max(14, sab + 8); UIY = Math.max(0, sat - 20);
+    hudY = Math.max(30, sat + 24); TOP = hudY + 62; BOT = 6; UIB = Math.max(14, sab + 8); UIY = Math.max(0, sat - 20);
     cv.width = W * dpr; cv.height = H * dpr;
   }
   const onResize = () => {
@@ -1187,18 +1187,18 @@
   function paintRoom(room) {
     const env = envOf(room), boss = bossRoom(room);
     drawBackdrop(room, 0);
-    const x0 = PAD - 6, y0 = TOP - 6, w = AW - PAD * 2 + 12, h = AH - TOP - BOT + 12;
+    const x0 = PAD - 6, y0 = TOP - 6, w = AW - PAD * 2 + 12, h = AH - TOP + 30;
     ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.6)'; ctx.shadowBlur = 24; ctx.fillStyle = env.floor; rr(x0, y0, w, h, 16); ctx.fill(); ctx.restore();
     ctx.save(); rr(x0, y0, w, h, 16); ctx.clip();
     const step = env.prop === 'pillar' ? 48 : 36, rnd = seeded(room * 3 + 1);
-    for (let x = PAD; x < AW - PAD; x += step) for (let y = TOP; y < AH - BOT; y += step) {          // slightly different tiles with a lit bevel
+    for (let x = PAD; x < AW - PAD; x += step) for (let y = TOP; y < AH + 20; y += step) {          // slightly different tiles with a lit bevel
       const v = rnd();
       ctx.fillStyle = v > 0.5 ? `rgba(255,255,255,${(v - 0.5) * 0.08})` : `rgba(0,0,0,${(0.5 - v) * 0.16})`; ctx.fillRect(x, y, step, step);
       ctx.fillStyle = 'rgba(255,255,255,.07)'; ctx.fillRect(x, y, step, 1.5); ctx.fillRect(x, y, 1.5, step);
       ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.fillRect(x, y + step - 1.5, step, 1.5); ctx.fillRect(x + step - 1.5, y, 1.5, step);
     }
-    ctx.fillStyle = env.grid; for (let x = PAD; x < AW - PAD; x += step) ctx.fillRect(x - 0.5, TOP, 1, AH - TOP - BOT);
-    for (let y = TOP; y < AH - BOT; y += step) ctx.fillRect(PAD, y - 0.5, AW - PAD * 2, 1);
+    ctx.fillStyle = env.grid; for (let x = PAD; x < AW - PAD; x += step) ctx.fillRect(x - 0.5, TOP, 1, AH - TOP + 30);
+    for (let y = TOP; y < AH + 20; y += step) ctx.fillRect(PAD, y - 0.5, AW - PAD * 2, 1);
     const n = seeded(room * 7 + 5);                                                            // grit and cracks
     for (let i = 0; i < 380; i++) { ctx.fillStyle = n() > 0.5 ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.12)'; ctx.fillRect(PAD + n() * (AW - PAD * 2), TOP + n() * (AH - TOP - BOT), 1 + n() * 2, 1 + n() * 2); }
     ctx.strokeStyle = 'rgba(0,0,0,.28)'; ctx.lineWidth = 1;
