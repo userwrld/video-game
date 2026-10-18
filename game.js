@@ -1,29 +1,37 @@
 // Monkeys vs Opps: clear rooms of Opps, pick one of three upgrades, beat a boss every 15 rooms. Stand still to shoot, move to dodge.
 // Drag anywhere with your thumb to move. Your monkey starts at the bottom, opps drop in from the top, and it auto-fires.
 (() => {
-  const VERSION = 'v14';
+  const VERSION = 'v15';
   const cv = document.getElementById('c'); let ctx = cv.getContext('2d'); const mainCtx = ctx;
   let W, H, S, AW, AH, dpr, hudY = 44, UIY = 0, UIB = 14;
   let TOP = 96, BOT = 16;                 // arena edges: top clears the HUD and notch, bottom clears the home bar
   const PAD = 16;
+  let lastInsetKey = '';
+  function readInsets() {                                                           // notch / Dynamic Island and home bar, in screen pixels
+    const probe = document.getElementById('probe'), cs = probe ? getComputedStyle(probe) : null;
+    let top = cs ? parseFloat(cs.paddingTop) || 0 : 0, bottom = cs ? parseFloat(cs.paddingBottom) || 0 : 0;
+    if (navigator.standalone && top === 0 && innerHeight >= 700) top = 54;           // home-screen apps on notched iPhones sometimes report 0 until later
+    return [Math.round(top), Math.round(bottom)];
+  }
   function resize() {
     dpr = Math.min(window.devicePixelRatio || 1, 3);
     const stage = cv.parentElement; stage.style.height = '';                         // the stage fills the viewport exactly; never taller than what is visible
     W = cv.clientWidth || innerWidth; H = cv.clientHeight || innerHeight;
     S = Math.min(W / 360, H / 640);
     AW = W / S; AH = H / S;
-    const probe = document.getElementById('probe'), cs = probe ? getComputedStyle(probe) : null;      // phone notch and home bar
-    const sat = cs ? (parseFloat(cs.paddingTop) || 0) / S : 0, sab = cs ? (parseFloat(cs.paddingBottom) || 0) / S : 0;
-    hudY = Math.max(30, sat + 24); TOP = hudY + 48; BOT = 6; UIB = Math.max(14, sab + 8); UIY = Math.max(0, sat - 20);
+    const ins = readInsets(); lastInsetKey = ins.join('|');
+    const sat = ins[0] / S, sab = ins[1] / S;
+    hudY = Math.max(30, sat + 26); TOP = hudY + 48; BOT = 6; UIB = Math.max(14, sab + 8); UIY = Math.max(0, sat - 2);
     cv.width = W * dpr; cv.height = H * dpr;
   }
   const onResize = () => {
     resize();
     if (typeof P !== 'undefined' && P) { P.x = clamp(P.x, PAD + P.r, AW - PAD - P.r); P.y = clamp(P.y, TOP + P.r, AH - BOT - P.r); }
     for (const e of enemies) { e.x = clamp(e.x, PAD, AW - PAD); e.y = clamp(e.y, TOP, AH - BOT); }
-    if (typeof run !== 'undefined' && run && typeof P !== 'undefined' && P && state !== 'menu' && state !== 'shop') { genWalls(run.room); if (inWall(P.x, P.y, P.r)) { P.x = AW / 2; P.y = AH - BOT - 70; } floorCache.key = ''; }
+    if (typeof run !== 'undefined' && run && typeof P !== 'undefined' && P && (state === 'play' || state === 'clear' || state === 'upgrade' || state === 'pause')) { genWalls(run.room); if (inWall(P.x, P.y, P.r)) { P.x = AW / 2; P.y = AH - BOT - 70; } floorCache.key = ''; }
   };
-  addEventListener('resize', onResize); addEventListener('orientationchange', () => setTimeout(onResize, 250));
+  addEventListener('resize', onResize); addEventListener('orientationchange', () => setTimeout(onResize, 250)); addEventListener('load', () => setTimeout(onResize, 50));
+  setInterval(() => { if (readInsets().join('|') !== lastInsetKey) onResize(); }, 600);          // pick up the real insets as soon as the phone reports them
   if (window.visualViewport) window.visualViewport.addEventListener('resize', onResize);
   resize();
 
