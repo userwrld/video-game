@@ -1,4 +1,4 @@
-// Monkey vs Opps: clear rooms of Opps, pick one of three upgrades, beat a boss every 15 rooms. Stand still to shoot, move to dodge.
+// Monkeys vs Opps: clear rooms of Opps, pick one of three upgrades, beat a boss every 15 rooms. Stand still to shoot, move to dodge.
 // Drag anywhere with your thumb to move. Your monkey starts at the bottom, opps drop in from the top, and it auto-fires.
 (() => {
   const cv = document.getElementById('c'); let ctx = cv.getContext('2d'); const mainCtx = ctx;
@@ -116,21 +116,21 @@
     zap:     { name: 'Volt Staff',   desc: 'Lightning that jumps between opps.', dmg: 11, rate: 2, chain: 2, range: 190, chainRange: 110, reach: 190, col: '#7df9ff' },
   };
   const CHARS = [
-    { mouth: 'grin', bg: '#f4a63a', cloth: '#b3261e', id: 'blaze',   name: 'Blaze Monkey',   short: 'Blaze',   role: 'Fire',          weapon: 'fire',   cost: 0,     fur: '#c4561f', skin: '#f0b88a', acc: 'band',   hp: 105, spd: 156, ability: 'nova',   passive: 'Burns hit 50% harder', weak: 'Low health', blurb: 'Bold and fearless. Sets the whole room on fire.' },
-    { mouth: 'flat', bg: '#aecbe0', cloth: '#4d5a3a', id: 'gunner',  name: 'Gunner Monkey',  short: 'Gunner',  role: 'Guns',          weapon: 'gun',    cost: 0,     fur: '#7a5a3a', skin: '#d9b48a', acc: 'cap',    hp: 115, spd: 154, ability: 'frenzy', passive: 'Bullets ricochet once', weak: 'No special element', blurb: 'Tactical and battle-ready. Reliable, balanced, deadly.' },
-    { mouth: 'flat', bg: '#c9ced8', cloth: '#222a3c', id: 'volt',    name: 'Volt Monkey',    short: 'Volt',    role: 'Lasers',        weapon: 'laser',  cost: 1500,  fur: '#2b2f4a', skin: '#8d93b8', acc: 'visor',  hp: 95,  spd: 158, ability: 'strike', passive: '+10% crit chance', weak: 'Short range', blurb: 'Cool and sharp. Precision beams cut through whole lines.' },
-    { mouth: 'smirk', bg: '#bfeaf5', cloth: '#e8f3ff', id: 'frost',   name: 'Frost Monkey',   short: 'Frost',   role: 'Ice',           weapon: 'ice',    cost: 2500,  fur: '#9fc4d8', skin: '#e8f6ff', acc: 'beanie', hp: 115, spd: 150, ability: 'freeze', passive: 'Doubled freeze chance', weak: 'Low raw damage', blurb: 'Calm and calculated. Slows and freezes anything that moves.' },
-    { mouth: 'open', bg: '#c7e58a', cloth: '#e3c43a', id: 'toxic',   name: 'Toxic Monkey',   short: 'Toxic',   role: 'Poison',        weapon: 'poison', cost: 4000,  fur: '#6a8f3a', skin: '#c9e08a', acc: 'gasmask', hp: 105, spd: 152, ability: 'nova',  passive: 'Poison spreads when opps die', weak: 'Slow to kill', blurb: 'Unpredictable and experimental. Damage that keeps on giving.' },
-    { mouth: 'grin', spots: 1, bg: '#ffe27a', cloth: '#2a2f55', id: 'thunder', name: 'Thunder Monkey', short: 'Thunder', role: 'Electricity',   weapon: 'zap',    cost: 6000,  fur: '#d9b02b', skin: '#fff0a0', acc: 'spikes', hp: 100, spd: 160, ability: 'strike', passive: 'Lightning chains 1 extra', weak: 'Short reach', blurb: 'Energetic and flashy. Lightning jumps through the crowd.' },
-    { mouth: 'flat', bg: '#a9b59a', cloth: '#6a7058', id: 'tank',    name: 'Tank Monkey',    short: 'Tank',    role: 'Heavy weapons', weapon: 'cannon', cost: 8500,  fur: '#5a5f4a', skin: '#b9b78e', acc: 'helmet', hp: 175, spd: 138, ability: 'shield', passive: '20% less damage taken', weak: 'Slow and slow-firing', blurb: 'Confident and unstoppable. Walks through fire, shells everything.' },
-    { mouth: 'smirk', ring: 1, bg: '#6c6a86', cloth: '#15151c', id: 'shadow',  name: 'Shadow Monkey',  short: 'Shadow',  role: 'Stealth',       weapon: 'shadow', cost: 12000, fur: '#2a2a33', skin: '#7b7b94', acc: 'hood',   hp: 90,  spd: 178, ability: 'blink',  passive: '30% crit, crits hit 3x', weak: 'Fragile', blurb: 'Mysterious and slick. Fast, elusive, and absolutely lethal.' },
-    { mouth: 'flat', bg: '#d6b8ff', cloth: '#3a2a7a', id: 'plasma',  name: 'Plasma Monkey',  short: 'Plasma',  role: 'Plasma',        weapon: 'plasma', cost: 16000, fur: '#8a5de0', skin: '#e2d0ff', acc: 'cyber',  hp: 105, spd: 152, ability: 'nova',   passive: 'Plasma blasts are 25% wider', weak: 'Tight spread up close', blurb: 'Futuristic and elite. Bursts of energy that control the floor.' },
-    { mouth: 'open', bg: '#ff9aa8', cloth: '#6c3fc9', id: 'chaos',   name: 'Chaos Monkey',   short: 'Chaos',   role: 'Mixed elements', weapon: 'chaos', cost: 25000, fur: '#c0392b', skin: '#ffd0a8', acc: 'jester', hp: 110, spd: 156, ability: 'chaos',  passive: 'Every shot rolls a new element', weak: 'Unpredictable', blurb: 'Flashy and legendary. Fire, ice, poison, lightning, plasma. All at once.' },
-    { mouth: 'smirk', bg: '#7fe0c8', cloth: '#7a2a2a', id: 'slash',   name: 'Slash Monkey',   short: 'Slash',   role: 'Blades',        weapon: 'blade',  cost: 3500,  fur: '#5a4636', skin: '#c9a27a', acc: 'scar',   hp: 130, spd: 172, ability: 'blink',  passive: 'Fast and tough in close combat', weak: 'Has to get close', blurb: 'A scarred street fighter with a combat knife.' },
-    { mouth: 'flat', ring: 1, bg: '#e8c99a', cloth: '#2a2a33', id: 'don',     name: 'Don Monkey',     short: 'Don',     role: 'Tommy gun',     weapon: 'tommy',  cost: 5000,  fur: '#7a5a3a', skin: '#d9b48a', acc: 'fedora', hp: 110, spd: 150, ability: 'frenzy', passive: 'Always has a cigar', weak: 'Messy aim', cigar: 1, blurb: 'Old-school boss. A cigar, a fedora and a Tommy gun.' },
-    { mouth: 'grin', ring: 1, bg: '#f7a8e8', cloth: '#ff4fd8', id: 'disco',   name: 'Disco Monkey',   short: 'Disco',   role: 'CDs',           weapon: 'cd',     cost: 4500,  fur: '#9b5de5', skin: '#f0c8ff', acc: 'phones', hp: 105, spd: 158, ability: 'nova',   passive: 'Discs bounce twice', weak: 'Slow discs', blurb: 'Spins records. Throws CDs that slice through crowds.' },
-    { mouth: 'smirk', bg: '#9ed3a0', cloth: '#3d6a30', id: 'robin',   name: 'Robin Monkey',   short: 'Robin',   role: 'Archery',       weapon: 'bow',    cost: 5500,  fur: '#4f7a3a', skin: '#d9c9a0', acc: 'hood',   hp: 100, spd: 162, ability: 'strike', passive: 'Arrows pierce twice', weak: 'Slow fire rate', blurb: 'A hooded hunter. Fast arrows punch through whole lines.' },
-    { mouth: 'grin', bg: '#f6c36a', cloth: '#e0a020', id: 'dyna',    name: 'Dyna Monkey',    short: 'Dyna',    role: 'Explosives',    weapon: 'nade',   cost: 7000,  fur: '#c4602d', skin: '#f0c8a0', acc: 'hardhat', hp: 115, spd: 148, ability: 'nova',  passive: 'Big blasts', weak: 'Fuse delay', blurb: 'Lobs lit dynamite. Everything nearby goes boom.' },
+    { tee: 'stripes', mouth: 'grin', bg: '#f4a63a', cloth: '#b3261e', id: 'blaze',   name: 'Blaze Monkey',   short: 'Blaze',   role: 'Fire',          weapon: 'fire',   cost: 0,     fur: '#c4561f', skin: '#f0b88a', acc: 'band',   hp: 105, spd: 156, ability: 'nova',   passive: 'Burns hit 50% harder', weak: 'Low health', blurb: 'Bold and fearless. Sets the whole room on fire.' },
+    { tee: 'vest', held: 'pipe', mouth: 'flat', bg: '#aecbe0', cloth: '#4d5a3a', id: 'gunner',  name: 'Gunner Monkey',  short: 'Gunner',  role: 'Guns',          weapon: 'gun',    cost: 0,     fur: '#7a5a3a', skin: '#d9b48a', acc: 'cap',    hp: 115, spd: 154, ability: 'frenzy', passive: 'Bullets ricochet once', weak: 'No special element', blurb: 'Tactical and battle-ready. Reliable, balanced, deadly.' },
+    { tee: 'plain', mouth: 'flat', bg: '#c9ced8', cloth: '#222a3c', id: 'volt',    name: 'Volt Monkey',    short: 'Volt',    role: 'Lasers',        weapon: 'laser',  cost: 1500,  fur: '#2b2f4a', skin: '#8d93b8', acc: 'visor',  hp: 95,  spd: 158, ability: 'strike', passive: '+10% crit chance', weak: 'Short range', blurb: 'Cool and sharp. Precision beams cut through whole lines.' },
+    { tee: 'dots', held: 'pick', mouth: 'smirk', bg: '#bfeaf5', cloth: '#e8f3ff', id: 'frost',   name: 'Frost Monkey',   short: 'Frost',   role: 'Ice',           weapon: 'ice',    cost: 2500,  fur: '#9fc4d8', skin: '#e8f6ff', acc: 'beanie', hp: 115, spd: 150, ability: 'freeze', passive: 'Doubled freeze chance', weak: 'Low raw damage', blurb: 'Calm and calculated. Slows and freezes anything that moves.' },
+    { tee: 'skull', mouth: 'open', bg: '#c7e58a', cloth: '#e3c43a', id: 'toxic',   name: 'Toxic Monkey',   short: 'Toxic',   role: 'Poison',        weapon: 'poison', cost: 4000,  fur: '#6a8f3a', skin: '#c9e08a', acc: 'gasmask', hp: 105, spd: 152, ability: 'nova',  passive: 'Poison spreads when opps die', weak: 'Slow to kill', blurb: 'Unpredictable and experimental. Damage that keeps on giving.' },
+    { tee: 'collar', mouth: 'grin', spots: 1, bg: '#ffe27a', cloth: '#2a2f55', id: 'thunder', name: 'Thunder Monkey', short: 'Thunder', role: 'Electricity',   weapon: 'zap',    cost: 6000,  fur: '#d9b02b', skin: '#fff0a0', acc: 'spikes', hp: 100, spd: 160, ability: 'strike', passive: 'Lightning chains 1 extra', weak: 'Short reach', blurb: 'Energetic and flashy. Lightning jumps through the crowd.' },
+    { tee: 'vest', mouth: 'flat', bg: '#a9b59a', cloth: '#6a7058', id: 'tank',    name: 'Tank Monkey',    short: 'Tank',    role: 'Heavy weapons', weapon: 'cannon', cost: 8500,  fur: '#5a5f4a', skin: '#b9b78e', acc: 'helmet', hp: 175, spd: 138, ability: 'shield', passive: '20% less damage taken', weak: 'Slow and slow-firing', blurb: 'Confident and unstoppable. Walks through fire, shells everything.' },
+    { tee: 'plain', held: 'cig', mouth: 'smirk', ring: 1, bg: '#6c6a86', cloth: '#15151c', id: 'shadow',  name: 'Shadow Monkey',  short: 'Shadow',  role: 'Stealth',       weapon: 'shadow', cost: 12000, fur: '#2a2a33', skin: '#7b7b94', acc: 'hood',   hp: 90,  spd: 178, ability: 'blink',  passive: '30% crit, crits hit 3x', weak: 'Fragile', blurb: 'Mysterious and slick. Fast, elusive, and absolutely lethal.' },
+    { tee: 'dots', mouth: 'flat', bg: '#d6b8ff', cloth: '#3a2a7a', id: 'plasma',  name: 'Plasma Monkey',  short: 'Plasma',  role: 'Plasma',        weapon: 'plasma', cost: 16000, fur: '#8a5de0', skin: '#e2d0ff', acc: 'cyber',  hp: 105, spd: 152, ability: 'nova',   passive: 'Plasma blasts are 25% wider', weak: 'Tight spread up close', blurb: 'Futuristic and elite. Bursts of energy that control the floor.' },
+    { tee: 'flag', mouth: 'open', bg: '#ff9aa8', cloth: '#6c3fc9', id: 'chaos',   name: 'Chaos Monkey',   short: 'Chaos',   role: 'Mixed elements', weapon: 'chaos', cost: 25000, fur: '#c0392b', skin: '#ffd0a8', acc: 'jester', hp: 110, spd: 156, ability: 'chaos',  passive: 'Every shot rolls a new element', weak: 'Unpredictable', blurb: 'Flashy and legendary. Fire, ice, poison, lightning, plasma. All at once.' },
+    { tee: 'skull', mouth: 'smirk', bg: '#7fe0c8', cloth: '#7a2a2a', id: 'slash',   name: 'Slash Monkey',   short: 'Slash',   role: 'Blades',        weapon: 'blade',  cost: 3500,  fur: '#5a4636', skin: '#c9a27a', acc: 'scar',   hp: 130, spd: 172, ability: 'blink',  passive: 'Fast and tough in close combat', weak: 'Has to get close', blurb: 'A scarred street fighter with a combat knife.' },
+    { tee: 'collar', mouth: 'flat', ring: 1, bg: '#e8c99a', cloth: '#2a2a33', id: 'don',     name: 'Don Monkey',     short: 'Don',     role: 'Tommy gun',     weapon: 'tommy',  cost: 5000,  fur: '#7a5a3a', skin: '#d9b48a', acc: 'fedora', hp: 110, spd: 150, ability: 'frenzy', passive: 'Always has a cigar', weak: 'Messy aim', cigar: 1, blurb: 'Old-school boss. A cigar, a fedora and a Tommy gun.' },
+    { tee: 'stripes', held: 'gum', mouth: 'grin', ring: 1, bg: '#f7a8e8', cloth: '#ff4fd8', id: 'disco',   name: 'Disco Monkey',   short: 'Disco',   role: 'CDs',           weapon: 'cd',     cost: 4500,  fur: '#9b5de5', skin: '#f0c8ff', acc: 'phones', hp: 105, spd: 158, ability: 'nova',   passive: 'Discs bounce twice', weak: 'Slow discs', blurb: 'Spins records. Throws CDs that slice through crowds.' },
+    { tee: 'plain', held: 'pick', mouth: 'smirk', bg: '#9ed3a0', cloth: '#3d6a30', id: 'robin',   name: 'Robin Monkey',   short: 'Robin',   role: 'Archery',       weapon: 'bow',    cost: 5500,  fur: '#4f7a3a', skin: '#d9c9a0', acc: 'hood',   hp: 100, spd: 162, ability: 'strike', passive: 'Arrows pierce twice', weak: 'Slow fire rate', blurb: 'A hooded hunter. Fast arrows punch through whole lines.' },
+    { tee: 'vest', mouth: 'grin', bg: '#f6c36a', cloth: '#e0a020', id: 'dyna',    name: 'Dyna Monkey',    short: 'Dyna',    role: 'Explosives',    weapon: 'nade',   cost: 7000,  fur: '#c4602d', skin: '#f0c8a0', acc: 'hardhat', hp: 115, spd: 148, ability: 'nova',  passive: 'Big blasts', weak: 'Fuse delay', blurb: 'Lobs lit dynamite. Everything nearby goes boom.' },
   ];
 
   // ---------- upgrades ----------
@@ -1252,12 +1252,11 @@
     return `rgb(${Math.round(r + (t - r) * k)},${Math.round(g + (t - g) * k)},${Math.round(b + (t - b) * k)})`;
   }
   const INK = '#1b1210';
-  function ball(x, y, r, col, sx = 1, sy = 1, rim = -0.5) {          // flat cartoon sphere: shadow tone, lit tone, bold outline
+  function ball(x, y, r, col, sx = 1, sy = 1, rim = -0.5) {          // flat vector shape: one fill, a soft shadow side, a thin outline
     ctx.save(); ctx.translate(x, y); ctx.scale(sx, sy);
-    ctx.fillStyle = shade(col, -0.3); ctx.beginPath(); ctx.arc(0, 0, r, 0, 6.28); ctx.fill();
-    ctx.fillStyle = col; ctx.beginPath(); ctx.arc(-r * 0.07, -r * 0.09, r * 0.9, 0, 6.28); ctx.fill();
-    if (r > 6) { ctx.fillStyle = shade(col, 0.3); ctx.globalAlpha = 0.55; ctx.beginPath(); ctx.ellipse(-r * 0.35, -r * 0.42, r * 0.22, r * 0.13, -0.6, 0, 6.28); ctx.fill(); ctx.globalAlpha = 1; }
-    if (r > 2.5) { ctx.strokeStyle = INK; ctx.lineWidth = Math.max(1.1, r * 0.075); ctx.beginPath(); ctx.arc(0, 0, r, 0, 6.28); ctx.stroke(); }
+    ctx.fillStyle = shade(col, -0.2); ctx.beginPath(); ctx.arc(0, 0, r, 0, 6.28); ctx.fill();
+    ctx.fillStyle = col; ctx.beginPath(); ctx.arc(-r * 0.06, -r * 0.08, r * 0.92, 0, 6.28); ctx.fill();
+    if (r > 2.5) { ctx.strokeStyle = INK; ctx.lineWidth = Math.max(1, r * 0.05); ctx.beginPath(); ctx.arc(0, 0, r, 0, 6.28); ctx.stroke(); }
     ctx.restore();
   }
   function shadow(x, y, rx, ry) { ctx.fillStyle = 'rgba(0,0,0,.34)'; ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, 6.28); ctx.fill(); }
@@ -1325,7 +1324,16 @@
     if (!bust && !(hasAim && w !== 'laser')) arm(-1, -r * 1.0 + Math.sin(walk) * r * 0.3 * mv, chestY + r * 0.85);
     ball(0, chestY, r * 0.95, cloth, 1.12, 0.95, -0.28);                                // torso in the monkey's outfit
     sv.fillStyle = skin; sv.beginPath(); sv.moveTo(-r * 0.3, chestY - r * 0.82); sv.lineTo(r * 0.3, chestY - r * 0.82); sv.lineTo(0, chestY - r * 0.3); sv.closePath(); sv.fill(); sv.strokeStyle = INK; sv.lineWidth = Math.max(1, r * 0.06); sv.stroke();
-    sv.strokeStyle = 'rgba(0,0,0,.3)'; sv.beginPath(); sv.moveTo(0, chestY - r * 0.3); sv.lineTo(0, chestY + r * 0.75); sv.stroke(); sv.fillStyle = shade(cloth, 0.35); sv.beginPath(); sv.arc(r * 0.35, chestY + r * 0.1, r * 0.1, 0, 6.28); sv.fill();
+    { const tee = ch.tee || 'plain', cy2 = chestY + r * 0.12;
+      sv.save(); sv.beginPath(); sv.ellipse(0, chestY, r * 1.06, r * 0.9, 0, 0, 6.28); sv.clip();
+      if (tee === 'stripes') { sv.fillStyle = 'rgba(255,255,255,.5)'; for (let i = 0; i < 4; i++) sv.fillRect(-r * 1.2, chestY - r * 0.1 + i * r * 0.26, r * 2.4, r * 0.12); }
+      else if (tee === 'skull') { sv.fillStyle = '#f2efe6'; sv.beginPath(); sv.arc(0, cy2 + r * 0.05, r * 0.26, 0, 6.28); sv.fill(); sv.fillRect(-r * 0.14, cy2 + r * 0.2, r * 0.28, r * 0.16); sv.fillStyle = cloth; sv.beginPath(); sv.arc(-r * 0.1, cy2, r * 0.06, 0, 6.28); sv.arc(r * 0.1, cy2, r * 0.06, 0, 6.28); sv.fill(); }
+      else if (tee === 'flag') { sv.fillStyle = '#e0e6f2'; sv.fillRect(-r * 0.5, cy2 - r * 0.2, r, r * 0.55); sv.fillStyle = '#c0392b'; for (let i = 0; i < 3; i++) sv.fillRect(-r * 0.5, cy2 - r * 0.2 + i * r * 0.22, r, r * 0.1); sv.fillStyle = '#2a3f8f'; sv.fillRect(-r * 0.5, cy2 - r * 0.2, r * 0.4, r * 0.3); }
+      else if (tee === 'vest') { sv.strokeStyle = 'rgba(0,0,0,.45)'; sv.lineWidth = r * 0.12; sv.beginPath(); sv.moveTo(-r * 0.55, chestY - r * 0.8); sv.lineTo(-r * 0.3, chestY + r * 0.9); sv.moveTo(r * 0.55, chestY - r * 0.8); sv.lineTo(r * 0.3, chestY + r * 0.9); sv.stroke(); sv.fillStyle = 'rgba(0,0,0,.3)'; sv.fillRect(-r * 0.5, cy2 + r * 0.1, r * 0.3, r * 0.3); sv.fillRect(r * 0.2, cy2 + r * 0.1, r * 0.3, r * 0.3); }
+      else if (tee === 'collar') { sv.fillStyle = '#f2efe6'; sv.beginPath(); sv.moveTo(-r * 0.4, chestY - r * 0.85); sv.lineTo(0, chestY - r * 0.25); sv.lineTo(-r * 0.05, chestY - r * 0.95); sv.fill(); sv.beginPath(); sv.moveTo(r * 0.4, chestY - r * 0.85); sv.lineTo(0, chestY - r * 0.25); sv.lineTo(r * 0.05, chestY - r * 0.95); sv.fill(); sv.fillStyle = '#c0392b'; sv.beginPath(); sv.moveTo(0, chestY - r * 0.3); sv.lineTo(-r * 0.1, chestY + r * 0.2); sv.lineTo(r * 0.1, chestY + r * 0.2); sv.fill(); }
+      else if (tee === 'dots') { sv.fillStyle = 'rgba(255,255,255,.4)'; for (let i = -2; i <= 2; i++) for (let j = 0; j < 3; j++) { sv.beginPath(); sv.arc(i * r * 0.3 + (j % 2) * r * 0.15, chestY - r * 0.1 + j * r * 0.3, r * 0.06, 0, 6.28); sv.fill(); } }
+      sv.restore();
+      sv.strokeStyle = 'rgba(0,0,0,.28)'; sv.lineWidth = Math.max(1, r * 0.05); sv.beginPath(); sv.moveTo(0, chestY - r * 0.3); sv.lineTo(0, chestY + r * 0.75); sv.stroke(); }
     if (!bust && hasAim && w !== 'laser') {                                                         // weapon, then hands on it
       sv.save(); sv.translate(0, chestY); sv.rotate(aim + (w === 'blade' ? swing : 0));
       const bar = (x0, h, w0, c) => { const gr = sv.createLinearGradient(0, -h / 2, 0, h / 2); gr.addColorStop(0, shade(c, 0.35)); gr.addColorStop(1, shade(c, -0.45)); sv.fillStyle = gr; sv.fillRect(x0, -h / 2, w0, h); };
@@ -1362,13 +1370,13 @@
     ball(-r * 1.0, r * 0.02, r * 0.3, fur); ball(r * 1.0, r * 0.02, r * 0.3, fur);
     ball(-r * 1.0, r * 0.02, r * 0.17, shade(skin, -0.15)); ball(r * 1.0, r * 0.02, r * 0.17, shade(skin, -0.15));
     if (ch.ring) { sv.strokeStyle = '#ffd34d'; sv.lineWidth = Math.max(1.4, r * 0.07); sv.beginPath(); sv.arc(-r * 1.2, r * 0.3, r * 0.12, 0, 6.28); sv.stroke(); }
-    ball(0, 0, r, fur, 1, 1.03);                                                          // head
+    ball(0, -r * 0.02, r, fur, 1.04, 1.04);                                                // head
     sv.save(); sv.beginPath(); sv.arc(0, 0, r, 0, 6.28); sv.clip(); furTexture(r, fur, ch.name.length * 31);
     if (ch.spots) { sv.fillStyle = 'rgba(40,24,6,.55)'; const rs = seeded(ch.name.length * 13); for (let i = 0; i < 9; i++) { sv.beginPath(); sv.ellipse(Math.cos(rs() * 6.28) * r * 0.75, Math.sin(rs() * 6.28) * r * 0.75, r * 0.1, r * 0.07, rs() * 3, 0, 6.28); sv.fill(); } }
     sv.restore();
     sv.fillStyle = dk; for (let i = -2; i <= 2; i++) { sv.beginPath(); sv.moveTo(i * r * 0.2 - r * 0.1, -r * 0.88); sv.lineTo(i * r * 0.22, -r * (1.18 - Math.abs(i) * 0.07)); sv.lineTo(i * r * 0.2 + r * 0.1, -r * 0.88); sv.fill(); }   // forelock
-    ball(0, r * 0.08, r * 0.7, skin, 1, 0.82);                                            // brow and cheek mask
-    ball(0, r * 0.56, r * 0.5, sk2, 1, 0.78);                                             // long muzzle
+    ball(0, r * 0.06, r * 0.74, skin, 1.02, 0.8);                                         // pale face mask around the eyes
+    ball(0, r * 0.56, r * 0.58, sk2, 1, 0.82);                                            // big protruding muzzle
     sv.strokeStyle = dk; sv.lineWidth = r * 0.2; sv.lineCap = 'round'; sv.beginPath(); sv.moveTo(-r * 0.58, -r * 0.2); sv.quadraticCurveTo(0, -r * 0.4, r * 0.58, -r * 0.2); sv.stroke();   // heavy brow
     sv.strokeStyle = INK; sv.lineWidth = Math.max(1, r * 0.05); sv.beginPath(); sv.moveTo(-r * 0.6, -r * 0.12); sv.quadraticCurveTo(0, -r * 0.3, r * 0.6, -r * 0.12); sv.stroke();
     const lx = hasAim ? Math.cos(aim) * r * 0.06 : 0, ly = hasAim ? Math.sin(aim) * r * 0.05 : 0;
@@ -1391,6 +1399,14 @@
     } else {
       sv.fillStyle = '#d98a86'; sv.beginPath(); sv.ellipse(0, r * 0.74, r * 0.3, r * 0.09, 0, 0, 6.28); sv.fill(); sv.stroke();                      // lower lip
       sv.beginPath(); sv.moveTo(-r * 0.36, r * 0.64); sv.quadraticCurveTo(0, r * (mouth === 'smirk' ? 0.6 : 0.68), r * 0.36, r * (mouth === 'smirk' ? 0.56 : 0.64)); sv.stroke();   // upper lip line
+    }
+    if (ch.held && ch.held !== 'cigar') {
+      sv.save(); sv.translate(r * 0.22, r * 0.66); sv.lineCap = 'round';
+      if (ch.held === 'pipe') { sv.strokeStyle = INK; sv.lineWidth = r * 0.14; sv.beginPath(); sv.moveTo(0, 0); sv.lineTo(r * 0.5, r * 0.1); sv.stroke(); sv.strokeStyle = '#8a5a2b'; sv.lineWidth = r * 0.08; sv.stroke(); ball(r * 0.6, -r * 0.05, r * 0.2, '#6b4220', 1, 1.1); glowAt(r * 0.6, -r * 0.2, r * 0.5, '#ff9a3a', 0.5); }
+      else if (ch.held === 'cig') { sv.rotate(-0.15); sv.fillStyle = '#f2efe6'; sv.fillRect(0, -r * 0.04, r * 0.62, r * 0.08); sv.strokeStyle = INK; sv.lineWidth = 1; sv.strokeRect(0, -r * 0.04, r * 0.62, r * 0.08); sv.fillStyle = '#e8873a'; sv.fillRect(r * 0.62, -r * 0.04, r * 0.06, r * 0.08); glowAt(r * 0.68, 0, r * 0.4, '#ff7a2a', 0.8); const tn2 = performance.now() / 1000; for (let i = 0; i < 3; i++) { const u = (tn2 * 0.6 + i * 0.33) % 1; sv.fillStyle = `rgba(220,220,230,${0.35 * (1 - u)})`; sv.beginPath(); sv.arc(r * 0.7 + Math.sin(u * 5 + i) * r * 0.12, -u * r * 0.9, r * (0.05 + u * 0.12), 0, 6.28); sv.fill(); } }
+      else if (ch.held === 'gum') { sv.translate(-r * 0.22, -r * 0.02); sv.fillStyle = '#ff8fcf'; sv.beginPath(); sv.arc(0, r * 0.1, r * (0.2 + 0.05 * Math.sin(performance.now() / 300)), 0, 6.28); sv.fill(); sv.strokeStyle = INK; sv.lineWidth = Math.max(1, r * 0.04); sv.stroke(); sv.fillStyle = 'rgba(255,255,255,.5)'; sv.beginPath(); sv.arc(-r * 0.06, r * 0.04, r * 0.06, 0, 6.28); sv.fill(); }
+      else if (ch.held === 'pick') { sv.strokeStyle = '#d9b46a'; sv.lineWidth = r * 0.05; sv.beginPath(); sv.moveTo(0, 0); sv.lineTo(r * 0.5, -r * 0.14); sv.stroke(); }
+      sv.restore();
     }
     if (ch.cigar) {                                                   // cigar in the corner of the mouth, with a glowing tip and drifting smoke
       sv.save(); sv.translate(r * 0.18, r * 0.52); sv.rotate(-0.22);
@@ -1429,7 +1445,6 @@
     ctx.save();
     ctx.shadowColor = 'rgba(0,0,0,.5)'; ctx.shadowBlur = w * 0.08; ctx.shadowOffsetY = w * 0.03; rr(x, y, w, w, w * 0.07); ctx.fillStyle = ch.bg; ctx.fill(); ctx.shadowColor = 'transparent';
     rr(x, y, w, w, w * 0.07); ctx.clip();
-    const g = ctx.createRadialGradient(x + w / 2, y + w * 0.4, w * 0.1, x + w / 2, y + w * 0.4, w * 0.85); g.addColorStop(0, 'rgba(255,255,255,.22)'); g.addColorStop(1, 'rgba(0,0,0,.14)'); ctx.fillStyle = g; ctx.fillRect(x, y, w, w);
     drawApe(ctx, x + w / 2, y + w * 0.49 + Math.sin(now / 700) * w * 0.004, w * 0.25, ch, null, 0, 0, 0, 0, true);
     if (locked) {
       ctx.fillStyle = 'rgba(12,8,28,.68)'; ctx.fillRect(x, y, w, w);
@@ -1683,7 +1698,7 @@
 
   // ---------- environments: every room gets its own look ----------
   const ENVS = [
-    { n: 'Mutant Sewer', bg: ['#0b1208', '#17220d'], floor: '#232326', grid: 'rgba(0,0,0,0)', edge: '#9dff3a', amb: 'spores', prop: 'vent', light: '#9dff3a', wall: ['#6a6a60', '#34342f', 'stone'], objs: ['barrel', 'crate', 'boulder'], hz: ['toxic', 'vent'], cobble: true, moat: true },
+    { n: 'Opp Sewer', bg: ['#0b1208', '#17220d'], floor: '#232326', grid: 'rgba(0,0,0,0)', edge: '#9dff3a', amb: 'spores', prop: 'vent', light: '#9dff3a', wall: ['#6a6a60', '#34342f', 'stone'], objs: ['barrel', 'crate', 'boulder'], hz: ['toxic', 'vent'], cobble: true, moat: true },
     { n: 'Futuristic Laboratory',  bg: ['#0a1424', '#16304a'], floor: '#1c2c40', grid: 'rgba(120,200,255,.14)', edge: '#6ad0ff', amb: 'stars',   prop: 'panel',   light: '#6ad0ff', wall: ['#9fb6d6', '#4a5f80', 'metal'], objs: ['crate', 'barrel', 'pillar'], hz: ['laser', 'spikes'] },
     { n: 'Military Research Base', bg: ['#1d2316', '#38422a'], floor: '#3a4230', grid: 'rgba(220,240,160,.1)',  edge: '#b9c77a', amb: 'dust',    prop: 'panel',   light: '#ffe9a0', wall: ['#8a9468', '#4a5236', 'crate'], objs: ['crate', 'barrel', 'boulder'], hz: ['spikes', 'vent'] },
     { n: 'Underground Bunker',     bg: ['#14141a', '#26262e'], floor: '#34343c', grid: 'rgba(200,200,220,.1)',  edge: '#8a8aa0', amb: 'dust',    prop: 'vent',    light: '#ffcf7a', wall: ['#8a8a96', '#4a4a56', 'stone'], objs: ['crate', 'pillar', 'barrel'], hz: ['spikes', 'toxic'] },
@@ -2161,7 +2176,7 @@
   function topBar(now) {                                                                          // profile, Ape Coins, settings
     const y = 12, ch = CHARS[sel];
     slate(12, y, 150, 40, 8); drawPortrait(ch, 17, y + 5, 30, now, false);
-    txt('MONKEY VS OPPS', 54, y + 14, 10, '#cfe8e2', 'left'); txt('BEST ROOM ' + save.best, 54, y + 28, 10, '#9fc4bc', 'left');
+    txt('MONKEYS VS OPPS', 54, y + 14, 10, '#cfe8e2', 'left'); txt('BEST ROOM ' + save.best, 54, y + 28, 10, '#9fc4bc', 'left');
     slate(170, y, AW - 170 - 58, 40, 8); coinArt(190, y + 20, 10); txt(save.ban.toLocaleString(), AW - 70, y + 21, 15, '#ffe27a', 'right');
     btns.push({ x: AW - 52, y: y + UIY, w: 40, h: 40, cb: () => { state = 'settings'; }, label: 'gear' });
     slate(AW - 52, y, 40, 40, 8); ctx.strokeStyle = '#cfe8e2'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(AW - 32, y + 20, 8, 0, 6.28); ctx.stroke(); for (let i = 0; i < 8; i++) { const a = i / 8 * 6.28; ctx.beginPath(); ctx.moveTo(AW - 32 + Math.cos(a) * 8, y + 20 + Math.sin(a) * 8); ctx.lineTo(AW - 32 + Math.cos(a) * 12, y + 20 + Math.sin(a) * 12); ctx.stroke(); }
@@ -2189,13 +2204,12 @@
   function drawTitle(now) {
     drawLabBg(now, 0);
     const fl = 1 - (Math.sin(now / 77) > 0.985 ? 0.55 : 0), cx = AW / 2, ty = AH * 0.2;
-    ctx.save(); ctx.strokeStyle = '#3de8ff'; ctx.lineWidth = 3; ctx.shadowColor = '#3de8ff'; ctx.shadowBlur = 16 * fl; ctx.beginPath(); ctx.moveTo(cx - 132, ty + 92); ctx.lineTo(cx - 152, ty - 50); ctx.lineTo(cx + 152, ty - 50); ctx.lineTo(cx + 132, ty + 92); ctx.closePath(); ctx.stroke(); ctx.restore();
-    neonTxt('MONKEY', cx - 34, ty - 20, Math.min(46, AW * 0.125), '#3dff7a', fl);
-    ctx.save(); ctx.translate(cx + 106, ty - 20); ctx.strokeStyle = '#ff3df2'; ctx.fillStyle = 'rgba(255,61,242,.25)'; ctx.lineWidth = 3; ctx.shadowColor = '#ff3df2'; ctx.shadowBlur = 14 * fl; ctx.beginPath(); ctx.arc(0, 0, 21, 0, 6.28); ctx.fill(); ctx.stroke(); ctx.beginPath(); ctx.arc(-22, -4, 7, 0, 6.28); ctx.arc(22, -4, 7, 0, 6.28); ctx.stroke();
+    ctx.save(); ctx.strokeStyle = '#3de8ff'; ctx.lineWidth = 3; ctx.shadowColor = '#3de8ff'; ctx.shadowBlur = 16 * fl; ctx.beginPath(); ctx.moveTo(cx - 132, ty + 90); ctx.lineTo(cx - 152, ty - 50); ctx.lineTo(cx + 152, ty - 50); ctx.lineTo(cx + 132, ty + 90); ctx.closePath(); ctx.stroke(); ctx.restore();
+    neonTxt('MONKEYS', cx - 30, ty - 20, Math.min(40, AW * 0.108), '#3dff7a', fl);
+    ctx.save(); ctx.translate(cx + 112, ty - 20); ctx.strokeStyle = '#ff3df2'; ctx.fillStyle = 'rgba(255,61,242,.25)'; ctx.lineWidth = 3; ctx.shadowColor = '#ff3df2'; ctx.shadowBlur = 14 * fl; ctx.beginPath(); ctx.arc(0, 0, 21, 0, 6.28); ctx.fill(); ctx.stroke(); ctx.beginPath(); ctx.arc(-22, -4, 7, 0, 6.28); ctx.arc(22, -4, 7, 0, 6.28); ctx.stroke();
     ctx.lineWidth = 2.5; for (const sx of [-1, 1]) { ctx.beginPath(); ctx.moveTo(sx * 11 - 4, -9); ctx.lineTo(sx * 11 + 4, -1); ctx.moveTo(sx * 11 + 4, -9); ctx.lineTo(sx * 11 - 4, -1); ctx.stroke(); } ctx.beginPath(); ctx.moveTo(-8, 10); ctx.lineTo(8, 10); ctx.stroke(); ctx.restore();
     neonTxt('VS', cx, ty + 20, 30, '#ffffff', fl * 0.8);
-    neonTxt('OPPS', cx, ty + 62, Math.min(68, AW * 0.185), '#ff3df2', fl);
-    neonTxt('APES VS MUTANTS', cx, ty + 108, 12, '#3de8ff', fl);
+    neonTxt('OPPS', cx, ty + 64, Math.min(70, AW * 0.19), '#ff3df2', fl);
     ctx.save(); ctx.translate(cx - 150, ty + 70); ctx.rotate(-0.5); ctx.fillStyle = '#ffe14a'; ctx.shadowColor = '#ffe14a'; ctx.shadowBlur = 12; ctx.beginPath(); ctx.ellipse(0, 0, 18, 7, 0, 0.2, 3); ctx.fill(); ctx.restore();
     const by = AH - UIY - 170;
     button(60, by, AW - 120, 50, 'PLAY', () => { state = 'menu'; }, { col: LABG, size: 20, label: 'title-play' });
@@ -2332,7 +2346,7 @@
     });
     const y = 78 + 4 * 64; slate(12, y, AW - 24, 54, 8); txt('Reset all progress', 26, y + 27, 14, '#ffb0a0', 'left');
     button(AW - 150, y + 8, 128, 38, resetArm > now ? 'TAP TO CONFIRM' : 'RESET', () => { if (resetArm > performance.now()) { try { localStorage.removeItem('monkey-opps'); localStorage.removeItem('banana-breach'); } catch (e) {} location.reload(); } else resetArm = performance.now() + 3000; }, { col: '#b8403a', size: 11, label: 'set-reset' });
-    txt('MONKEY VS OPPS  -  Apes vs Mutants', AW / 2, y + 90, 12, '#9fc4bc'); txt('Stop moving to shoot. Dodge. Pick upgrades. Beat the bosses.', AW / 2, y + 110, 10, '#7fa49c');
+    txt('MONKEYS VS OPPS', AW / 2, y + 90, 13, '#9fc4bc'); txt('Stop moving to shoot. Dodge. Pick upgrades. Beat the bosses.', AW / 2, y + 110, 10, '#7fa49c');
     button(60, AH - UIY - UIB - 50, AW - 120, 46, 'BACK', () => { state = 'menu'; }, { col: LABG, size: 16, label: 'back' });
   }
 

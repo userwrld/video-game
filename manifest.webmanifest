@@ -1,7 +1,7 @@
 {
-  "name": "Monkey vs Opps",
-  "short_name": "Monkey vs Opps",
-  "description": "Apes vs Mutants: fight through rooms of Opps, pick upgrades, beat a boss every 15 rooms.",
+  "name": "Monkeys vs Opps",
+  "short_name": "Monkeys vs Opps",
+  "description": "Fight through rooms of Opps, pick upgrades, beat a boss every 15 rooms.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
