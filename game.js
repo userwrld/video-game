@@ -7,6 +7,8 @@
   const PAD = 16;
   function resize() {
     dpr = Math.min(window.devicePixelRatio || 1, 3);
+    const stage = cv.parentElement; stage.style.height = '';                         // iPhone home-screen apps can report a viewport a little shorter than the screen
+    if (navigator.standalone && matchMedia('(orientation: portrait)').matches && screen.height > stage.clientHeight && screen.height - stage.clientHeight < 90) stage.style.height = screen.height + 'px';
     W = cv.clientWidth || innerWidth; H = cv.clientHeight || innerHeight;
     S = Math.min(W / 360, H / 640);
     AW = W / S; AH = H / S;
