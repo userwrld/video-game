@@ -7,8 +7,7 @@
   const PAD = 16;
   function resize() {
     dpr = Math.min(window.devicePixelRatio || 1, 3);
-    const stage = cv.parentElement; stage.style.height = '';                         // iPhone home-screen apps can report a viewport a little shorter than the screen
-    if (navigator.standalone && matchMedia('(orientation: portrait)').matches && screen.height > stage.clientHeight && screen.height - stage.clientHeight < 90) stage.style.height = screen.height + 'px';
+    const stage = cv.parentElement; stage.style.height = '';                         // the stage fills the viewport exactly; never taller than what is visible
     W = cv.clientWidth || innerWidth; H = cv.clientHeight || innerHeight;
     S = Math.min(W / 360, H / 640);
     AW = W / S; AH = H / S;
@@ -2086,7 +2085,7 @@
     ctx.strokeStyle = 'rgba(0,0,0,.7)'; ctx.lineWidth = 1.5; rr(16, by2, AW - 32, 12, 6); ctx.stroke();
     txt(boss ? boss.name : remaining + ' LEFT', AW / 2, by2 + 6.5, 9, '#fff');
     if (state === 'play' || state === 'clear') {
-      const px = 8, py = AH - BOT - 78, ps = 58, A = ABIL[P.ch.ability], ready = P.abCd <= 0, cx = px + ps / 2, cy = py - 36;
+      const px = 8, py = AH - Math.max(BOT, UIB - 8) - 78, ps = 58, A = ABIL[P.ch.ability], ready = P.abCd <= 0, cx = px + ps / 2, cy = py - 36;
       drawPortrait(P.ch, px, py, ps, now, false);                                                  // portrait and health, bottom left
       const hp = clamp(P.hp / P.hpMax, 0, 1);
       ctx.fillStyle = 'rgba(0,0,0,.65)'; rr(px, py + ps + 3, ps, 9, 4); ctx.fill();
@@ -2168,8 +2167,8 @@
     slate(AW - 52, y, 40, 40, 8); ctx.strokeStyle = '#cfe8e2'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(AW - 32, y + 20, 8, 0, 6.28); ctx.stroke(); for (let i = 0; i < 8; i++) { const a = i / 8 * 6.28; ctx.beginPath(); ctx.moveTo(AW - 32 + Math.cos(a) * 8, y + 20 + Math.sin(a) * 8); ctx.lineTo(AW - 32 + Math.cos(a) * 12, y + 20 + Math.sin(a) * 12); ctx.stroke(); }
   }
   function tabBar(active) {
-    const bot = AH - UIY, h = 58, y = bot - h;
-    const g = ctx.createLinearGradient(0, y, 0, bot + 40); g.addColorStop(0, '#3c5857'); g.addColorStop(1, '#1f302f'); ctx.fillStyle = g; ctx.fillRect(0, y, AW, h + 60);
+    const bot = AH - UIY - (UIB - 14), h = 58, y = bot - h;                          // tabs sit above the home bar; the bar colour runs to the screen edge
+    const g = ctx.createLinearGradient(0, y, 0, y + h + 80); g.addColorStop(0, '#3c5857'); g.addColorStop(1, '#1f302f'); ctx.fillStyle = g; ctx.fillRect(0, y, AW, h + 120);
     ctx.fillStyle = '#86a7a0'; ctx.fillRect(0, y, AW, 2);
     [['apes', 'APES'], ['menu', 'BATTLE']].forEach(([st, label], i) => {
       const x = i * (AW / 2), on = active === st;
