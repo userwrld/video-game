@@ -1,13 +1,13 @@
 {
-  "name": "Banana Breach",
-  "short_name": "Banana Breach",
-  "description": "Fight through rooms of opps with your monkey.",
+  "name": "Monkey vs Opps",
+  "short_name": "Monkey vs Opps",
+  "description": "Apes vs Mutants: fight through rooms of Opps, pick upgrades, beat a boss every 15 rooms.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#1d1235",
-  "theme_color": "#1d1235",
+  "background_color": "#0b100e",
+  "theme_color": "#0b100e",
   "icons": [
     { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
     { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
