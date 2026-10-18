@@ -1,6 +1,7 @@
 // Monkeys vs Opps: clear rooms of Opps, pick one of three upgrades, beat a boss every 15 rooms. Stand still to shoot, move to dodge.
 // Drag anywhere with your thumb to move. Your monkey starts at the bottom, opps drop in from the top, and it auto-fires.
 (() => {
+  const VERSION = 'v14';
   const cv = document.getElementById('c'); let ctx = cv.getContext('2d'); const mainCtx = ctx;
   let W, H, S, AW, AH, dpr, hudY = 44, UIY = 0, UIB = 14;
   let TOP = 96, BOT = 16;                 // arena edges: top clears the HUD and notch, bottom clears the home bar
@@ -2214,7 +2215,7 @@
     const by = AH - UIY - 170;
     button(60, by, AW - 120, 50, 'PLAY', () => { state = 'menu'; }, { col: LABG, size: 20, label: 'title-play' });
     button(60, by + 60, AW - 120, 44, 'SETTINGS', () => { state = 'settings'; }, { col: '#5a7a6a', size: 15, label: 'title-settings' });
-    txt('Tap PLAY to enter the lab', AW / 2, by + 124, 11, 'rgba(220,255,230,.6)');
+    txt('Tap PLAY to enter the lab', AW / 2, by + 124, 11, 'rgba(220,255,230,.6)'); txt(VERSION, AW - 14, AH - UIY - 10, 10, 'rgba(220,255,230,.4)', 'right');
   }
 
   // ---------- battle tab ----------
@@ -2346,7 +2347,7 @@
     });
     const y = 78 + 4 * 64; slate(12, y, AW - 24, 54, 8); txt('Reset all progress', 26, y + 27, 14, '#ffb0a0', 'left');
     button(AW - 150, y + 8, 128, 38, resetArm > now ? 'TAP TO CONFIRM' : 'RESET', () => { if (resetArm > performance.now()) { try { localStorage.removeItem('monkey-opps'); localStorage.removeItem('banana-breach'); } catch (e) {} location.reload(); } else resetArm = performance.now() + 3000; }, { col: '#b8403a', size: 11, label: 'set-reset' });
-    txt('MONKEYS VS OPPS', AW / 2, y + 90, 13, '#9fc4bc'); txt('Stop moving to shoot. Dodge. Pick upgrades. Beat the bosses.', AW / 2, y + 110, 10, '#7fa49c');
+    txt('MONKEYS VS OPPS  ' + VERSION, AW / 2, y + 90, 13, '#9fc4bc'); txt('Stop moving to shoot. Dodge. Pick upgrades. Beat the bosses.', AW / 2, y + 110, 10, '#7fa49c');
     button(60, AH - UIY - UIB - 50, AW - 120, 46, 'BACK', () => { state = 'menu'; }, { col: LABG, size: 16, label: 'back' });
   }
 
