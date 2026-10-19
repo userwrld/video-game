@@ -1,7 +1,7 @@
 // Monkeys vs Opps: clear rooms of Opps, pick one of three upgrades, beat a boss every 10 rooms. Stand still to shoot, move to dodge.
 // Drag anywhere with your thumb to move. Your monkey starts at the bottom, opps drop in from the top, and it auto-fires.
 (() => {
-  const VERSION = 'v47';
+  const VERSION = 'v48';
   const cv = document.getElementById('c'); let ctx = cv.getContext('2d'); const mainCtx = ctx;
   let W, H, S, AW, AH, dpr, hudY = 44, UIY = 0, UIB = 14;
   let RW = 0, RH = 0, camX = 0, camY = 0;                   // the room can be bigger than the screen; the camera follows you
@@ -442,7 +442,7 @@
     if (bossRoom(room)) { RW = AW; RH = AH; }                                      // boss arenas fit on one screen
     else {
       const r = seeded(room * 37 + 11), f = Math.min(1, 0.55 + room * 0.045);
-      RW = AW * (1 + (0.1 + r() * 0.3) * f); RH = AH * (1 + (0.4 + r() * 0.5) * f);
+      RW = AW * (1 + (0.45 + r() * 0.4) * f); RH = AH * (1 + (0.2 + r() * 0.3) * f);
       const k = S * Math.min(dpr, 2); while (RW * RH * k * k > 8.5e6) { RW *= 0.94; RH *= 0.94; }
       RW = Math.max(AW, Math.round(RW)); RH = Math.max(AH, Math.round(RH));
     }
