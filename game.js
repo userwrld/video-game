@@ -1,7 +1,7 @@
 // Monkeys vs Opps: clear rooms of Opps, pick one of three upgrades, beat a boss every 15 rooms. Stand still to shoot, move to dodge.
 // Drag anywhere with your thumb to move. Your monkey starts at the bottom, opps drop in from the top, and it auto-fires.
 (() => {
-  const VERSION = 'v23';
+  const VERSION = 'v24';
   const cv = document.getElementById('c'); let ctx = cv.getContext('2d'); const mainCtx = ctx;
   let W, H, S, AW, AH, dpr, hudY = 44, UIY = 0, UIB = 14;
   let RW = 0, RH = 0, camX = 0, camY = 0;                   // the room can be bigger than the screen; the camera follows you
@@ -414,7 +414,8 @@
       const n = Math.min(6 + Math.floor(room * 1.4), 44);
       const pool = [['runt', Math.max(1.5, 5 - room * 0.12)]];
       if (room >= 2) pool.push(['brute', 3 + room * 0.1]);
-      if (room >= 3) { pool.push(['shooter', 2 + room * 0.1]); pool.push(['swarm', 1.6 + room * 0.1]); }
+      if (room >= 2) pool.push(['shooter', 2.6 + room * 0.15]);
+      if (room >= 3) { pool.push(['swarm', 1.6 + room * 0.1]); }
       if (room >= 5) pool.push(['dasher', 2 + room * 0.1]);
       if (room >= 6) pool.push(['shield', 1.6 + room * 0.1]);
       if (room >= 7) pool.push(['bomber', 1.4 + room * 0.06]);
@@ -444,8 +445,8 @@
     if (kind !== 'boss') {
       let gun = null;
       if (kind === 'shooter') gun = room >= 8 && Math.random() < 0.4 ? 'smg' : (Math.random() < 0.5 ? 'rifle' : 'pistol');
-      else if (kind === 'runt' && room >= 3 && Math.random() < Math.min(0.6, 0.2 + room * 0.02)) gun = 'pistol';
-      else if (kind === 'brute' && room >= 4 && Math.random() < Math.min(0.8, 0.35 + room * 0.02)) gun = Math.random() < 0.5 ? 'smg' : 'shotgun';
+      else if (kind === 'runt' && room >= 2 && Math.random() < Math.min(0.7, 0.35 + room * 0.02)) gun = 'pistol';
+      else if (kind === 'brute' && room >= 3 && Math.random() < Math.min(0.85, 0.45 + room * 0.02)) gun = Math.random() < 0.5 ? 'smg' : 'shotgun';
       else if (kind === 'tank') gun = 'cannon';
       e.gun = gun; e.out = Math.floor(rand(0, 5)); e.burst = 0; e.bt = 0;
       if (kind === 'shield') { e.shield = true; e.gun = null; }
