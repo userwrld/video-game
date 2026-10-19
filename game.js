@@ -1,7 +1,7 @@
 // Monkeys vs Opps: clear rooms of Opps, pick one of three upgrades, beat a boss every 10 rooms. Stand still to shoot, move to dodge.
 // Drag anywhere with your thumb to move. Your monkey starts at the bottom, opps drop in from the top, and it auto-fires.
 (() => {
-  const VERSION = 'v42';
+  const VERSION = 'v43';
   const cv = document.getElementById('c'); let ctx = cv.getContext('2d'); const mainCtx = ctx;
   let W, H, S, AW, AH, dpr, hudY = 44, UIY = 0, UIB = 14;
   let RW = 0, RH = 0, camX = 0, camY = 0;                   // the room can be bigger than the screen; the camera follows you
@@ -308,7 +308,7 @@
     ctx.restore();
     return true;
   }
-  const BOSS_SPRITES = { bandit: 1 };                                    // bosses drawn from the supplied artwork (cut-outs in art/)
+  const BOSS_SPRITES = { bandit: { face: 1 }, ninja: { face: -1 }, ammo: { face: 1 }, ghillie: { face: 1 } };                                    // bosses drawn from the supplied artwork (cut-outs in art/)
   const bossArtC = {};
   function bossArt(id) { if (!BOSS_SPRITES[id]) return null; if (!bossArtC[id]) { const im = new Image(); im.src = 'art/boss_' + id + '.webp'; bossArtC[id] = im; } return bossArtC[id]; }
   const bossCfg = room => BOSSES[((room / 10 - 1) % BOSSES.length + BOSSES.length) % BOSSES.length];
@@ -1733,7 +1733,7 @@
     const art = e.boss && !e.clone ? bossArt(e.bid) : null;
     if (art && art.complete && art.naturalWidth) {                      // supplied artwork instead of the drawn body
       const h = r * 4.5, w = h * art.naturalWidth / art.naturalHeight, sway = Math.sin(e.ph) * 0.03;
-      ctx.save(); ctx.translate(0, r * 2.0); ctx.rotate(sway); if (P.x < e.x) ctx.scale(-1, 1); ctx.drawImage(art, -w / 2, -h, w, h); ctx.restore();
+      ctx.save(); ctx.translate(0, r * 2.0); ctx.rotate(sway); if ((P.x < e.x ? -1 : 1) !== BOSS_SPRITES[e.bid].face) ctx.scale(-1, 1); ctx.drawImage(art, -w / 2, -h, w, h); ctx.restore();
     } else {
       if (!flying) oppBody(e, r, col);
       beast(e, r, col);
