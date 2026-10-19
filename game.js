@@ -1,7 +1,7 @@
 // Monkeys vs Opps: clear rooms of Opps, pick one of three upgrades, beat a boss every 15 rooms. Stand still to shoot, move to dodge.
 // Drag anywhere with your thumb to move. Your monkey starts at the bottom, opps drop in from the top, and it auto-fires.
 (() => {
-  const VERSION = 'v24';
+  const VERSION = 'v25';
   const cv = document.getElementById('c'); let ctx = cv.getContext('2d'); const mainCtx = ctx;
   let W, H, S, AW, AH, dpr, hudY = 44, UIY = 0, UIB = 14;
   let RW = 0, RH = 0, camX = 0, camY = 0;                   // the room can be bigger than the screen; the camera follows you
@@ -313,7 +313,7 @@
   function buildPlayer() {
     const ch = CHARS[sel], w = WEAP[ch.weapon];
     P = Object.assign({}, w, {
-      ch, x: RW / 2, y: RH - BOT - 130, r: 14, hp: ch.hp, hpMax: ch.hp, speed: ch.spd, inv: 1, cd: 0.4, aim: -Math.PI / 2, tick: 0,
+      ch, x: RW / 2, y: RH - BOT - 180, r: 14, hp: ch.hp, hpMax: ch.hp, speed: ch.spd, inv: 1, cd: 0.4, aim: -Math.PI / 2, tick: 0,
       crit: 0.05, magnet: 60, bmult: 1, dr: 0, vamp: 0, invT: 0.7, rico: w.rico || 0, homing: 0, explo: 0, cluster: 0, burn: w.burn || 0,
       spreadFire: 0, stun: 0, boom: w.boom || 0, lives: 2,
       critMul: 2, freeze: 0.05, freezeDur: 0, pois: w.pois || 0, poisDur: 0, pSpread: 0, shatter: 0, psize: 1, side: 0, rear: 0, dodge: 0, shieldHits: 0, cdr: 1,
@@ -391,7 +391,7 @@
       let cx = 0, cy = 0, ok = false;
       for (let tries = 0; tries < 40 && !ok; tries++) {
         cx = rand(PAD + 50, RW - PAD - 50); cy = rand(TOP + 70, RH - BOT - (tries < 30 ? 330 : 120));
-        ok = !inWall(cx, cy, 44) && Math.hypot(cx - RW / 2, cy - (RH - BOT - 130)) > (tries < 30 ? 320 : 200) && !(Math.abs(cx - RW / 2) < 90 && cy < TOP + 130);
+        ok = !inWall(cx, cy, 44) && Math.hypot(cx - RW / 2, cy - (RH - BOT - 180)) > (tries < 30 ? 320 : 200) && !(Math.abs(cx - RW / 2) < 90 && cy < TOP + 130);
       }
       for (let k = 0; k < size; k++) {
         const kind = items[i + k];
@@ -405,7 +405,7 @@
   function startRoom() {
     enemies = []; pbul = []; ebul = []; pickups = []; fx = []; zones = []; mines = []; roomTotal = 0; decal.clear = true; clearT = 0; spawnT = 0.8; bannerT = 1.4; shake = 0; flash = 0;
     const room = run.room; worldInit(room);
-    P.x = RW / 2; P.y = RH - BOT - 130; P.inv = Math.max(P.inv, 1); P.vx = P.vy = 0; snapCamera();
+    P.x = RW / 2; P.y = RH - BOT - 180; P.inv = Math.max(P.inv, 1); P.vx = P.vy = 0; snapCamera();
     P.hurtRoom = false; genWalls(room); genHazards(room); roomT = 0; P.shieldHits = P.shieldMax;
     takeSnap();
     queue = [];
@@ -492,7 +492,7 @@
         const k = OBJ[Math.floor(rnd() * OBJ.length)], [ow, oh] = SIZE[k];
         const ox = xa + rnd() * Math.max(1, xb - xa - ow), oy = ya + rnd() * Math.max(1, yb - ya - oh);
         if (oy < TOP + 110 && ox < RW / 2 + 90 && ox + ow > RW / 2 - 90) continue;
-        if (oy + oh > RH - BOT - 190 && ox < RW / 2 + 80 && ox + ow > RW / 2 - 80) continue;
+        if (oy + oh > RH - BOT - 240 && ox < RW / 2 + 80 && ox + ow > RW / 2 - 80) continue;
         if (walls.some(o => ox < o.x + o.w + gap && ox + ow > o.x - gap && oy < o.y + o.h + gap && oy + oh > o.y - gap)) continue;
         walls.push({ x: ox, y: oy, w: ow, h: oh, i: walls.length, k, hp: k === 'barrel' ? 20 : k === 'crate' ? 36 : 0, max: k === 'barrel' ? 20 : k === 'crate' ? 36 : 0 });
         continue;
@@ -501,7 +501,7 @@
       const h = kind < 0.45 ? 20 + rnd() * 10 : kind < 0.75 ? 56 + rnd() * 60 : w;
       const x = xa + rnd() * Math.max(1, xb - xa - w), y = ya + rnd() * Math.max(1, yb - ya - h);
       if (y < TOP + 110 && x < RW / 2 + 90 && x + w > RW / 2 - 90) continue;                        // keep the exit door clear
-      if (y + h > RH - BOT - 190 && x < RW / 2 + 80 && x + w > RW / 2 - 80) continue;               // and the spot you walk in on
+      if (y + h > RH - BOT - 240 && x < RW / 2 + 80 && x + w > RW / 2 - 80) continue;               // and the spot you walk in on
       if (walls.some(o => x < o.x + o.w + gap && x + w > o.x - gap && y < o.y + o.h + gap && y + h > o.y - gap)) continue;
       walls.push({ x, y, w, h, i: walls.length });
     }
@@ -512,7 +512,7 @@
   function pathExists() {
     const { cols, rows, blocked } = nav, seen = new Uint8Array(cols * rows);
     const cell = (x, y) => clamp(Math.floor(y / CELL), 0, rows - 1) * cols + clamp(Math.floor(x / CELL), 0, cols - 1);
-    const start = cell(RW / 2, RH - BOT - 130), goal = cell(RW / 2, TOP + 26), q = [start]; seen[start] = 1;
+    const start = cell(RW / 2, RH - BOT - 180), goal = cell(RW / 2, TOP + 26), q = [start]; seen[start] = 1;
     for (let h = 0; h < q.length; h++) {
       const c = q[h]; if (c === goal) return true;
       const ci = c % cols, cj = (c / cols) | 0;
@@ -607,7 +607,7 @@
     for (let tries = 0; hazards.length < n && tries < 100; tries++) {
       const k = env.hz[Math.floor(rnd() * env.hz.length)];
       const h = { k, t: rnd() * 3, x: xa + rnd() * (xb - xa), y: ya + rnd() * (yb - ya), r: k === 'toxic' ? 36 : 26, w: 46, h: 46, hit: false, st: 0 };
-      if (k === 'laser') { h.x = PAD; h.w = RW - PAD * 2; if (Math.abs(h.y - (RH - BOT - 130)) < 120) continue; }
+      if (k === 'laser') { h.x = PAD; h.w = RW - PAD * 2; if (Math.abs(h.y - (RH - BOT - 180)) < 120) continue; }
       if (Math.abs(h.x - RW / 2) < 80 && h.y < TOP + 140) continue;                              // keep the door lane clear
       if (walls.some(w => h.x > w.x - 34 && h.x < w.x + w.w + 34 && h.y > w.y - 34 && h.y < w.y + w.h + 34) && k !== 'laser') continue;
       if (hazards.some(o => o.k !== 'laser' && k !== 'laser' && Math.hypot(o.x - h.x, o.y - h.y) < 90) || hazards.some(o => o.k === 'laser' && k === 'laser' && Math.abs(o.y - h.y) < 90)) continue;
@@ -983,7 +983,7 @@
     let l = Math.hypot(dx, dy);
     if (l < 0.2) { dx = P.vx || 0; dy = P.vy || 0; l = Math.hypot(dx, dy); }
     if (l < 1) { dx = -Math.cos(P.aim); dy = -Math.sin(P.aim); l = 1; }
-    P.dashDir = [dx / l, dy / l]; P.dashT = 0.17; P.dashCd = 0.8; P.inv = Math.max(P.inv, 0.3);
+    P.dashDir = [dx / l, dy / l]; P.dashT = 0.17; P.dashCd = 0; P.inv = Math.max(P.inv, 0.3);
     tone(420, 0.15, 'sawtooth', 0.05, 380); if (navigator.vibrate && save.set.vib) navigator.vibrate(12);
     return true;
   }
@@ -1295,13 +1295,13 @@
   cv.addEventListener('pointermove', e => {
     if (!joy.on || e.pointerId !== joy.id) return;
     const { x, y } = toLogical(e);
-    let dx = x - joy.ox, dy = y - joy.oy; const d = Math.hypot(dx, dy), R = 40;
+    let dx = x - joy.ox, dy = y - joy.oy; const d = Math.hypot(dx, dy), R = 58;
     if (d > R) { joy.ox += dx / d * (d - R); joy.oy += dy / d * (d - R); dx = x - joy.ox; dy = y - joy.oy; }   // stick follows the thumb
     joy.x = x; joy.y = y; joy.dx = clamp(dx / R, -1, 1); joy.dy = clamp(dy / R, -1, 1);
     const tn = performance.now(); (joy.hist = joy.hist || []).push([x, y, tn]); while (joy.hist.length > 1 && tn - joy.hist[0][2] > 90) joy.hist.shift();
     if (state === 'play') {                                                      // quick swipe of the stick in any direction dashes that way
       const h0 = joy.hist[0], mx = x - h0[0], my = y - h0[1], md = Math.hypot(mx, my);
-      if (md > 75 && tn - h0[2] > 0 && md / (tn - h0[2]) > 1.2 && tn - (joy.lastDash || 0) > 350) {
+      if (md > 75 && tn - h0[2] > 0 && md / (tn - h0[2]) > 1.2 && tn - (joy.lastDash || 0) > 200) {
         const sm = Math.hypot(joy.dx, joy.dy);                                    // only a swipe that pushes the stick the way it's already pointing counts, so easing back to centre never dashes backwards
         if (sm > 0.5 && (mx * joy.dx + my * joy.dy) / (md * sm) > 0.7) { joy.lastDash = tn; joy.hist.length = 0; tryDash(joy.dx, joy.dy); }
       }
@@ -2283,10 +2283,10 @@
     drawLighting(now);
     { const vg = ctx.createRadialGradient(AW / 2, AH * 0.52, Math.min(AW, AH) * 0.32, AW / 2, AH * 0.52, Math.max(AW, AH) * 0.78); vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(4,2,12,.55)'); ctx.fillStyle = vg; ctx.fillRect(0, 0, AW, AH); }
     if ((state === 'play' || state === 'clear') && joy.on) {                  // thumb stick, only while touching
-      const sx = joy.on ? joy.ox : AW / 2, sy = joy.on ? joy.oy : AH * 0.66, kx = sx + (joy.on ? joy.dx * 40 : 0), ky = sy + (joy.on ? joy.dy * 40 : 0), al = joy.on ? 1 : 0.35;
-      ctx.save(); ctx.globalAlpha = al; ctx.fillStyle = 'rgba(255,255,255,.08)'; ctx.beginPath(); ctx.arc(sx, sy, 46, 0, 6.28); ctx.fill(); ctx.strokeStyle = 'rgba(255,255,255,.4)'; ctx.lineWidth = 3; ctx.stroke();
-      ctx.fillStyle = 'rgba(190,205,215,.75)'; ctx.beginPath(); ctx.arc(kx, ky, 19, 0, 6.28); ctx.fill(); ctx.strokeStyle = 'rgba(30,40,50,.8)'; ctx.lineWidth = 2; ctx.stroke();
-      ctx.fillStyle = 'rgba(30,40,50,.75)'; ctx.beginPath(); ctx.arc(kx, ky + 1, 7, 0, 6.28); ctx.arc(kx - 8, ky - 4, 3.5, 0, 6.28); ctx.arc(kx + 8, ky - 4, 3.5, 0, 6.28); ctx.fill();      // monkey emblem
+      const sx = joy.on ? joy.ox : AW / 2, sy = joy.on ? joy.oy : AH * 0.66, kx = sx + (joy.on ? joy.dx * 58 : 0), ky = sy + (joy.on ? joy.dy * 58 : 0), al = joy.on ? 1 : 0.35;
+      ctx.save(); ctx.globalAlpha = al; ctx.fillStyle = 'rgba(255,255,255,.08)'; ctx.beginPath(); ctx.arc(sx, sy, 66, 0, 6.28); ctx.fill(); ctx.strokeStyle = 'rgba(255,255,255,.4)'; ctx.lineWidth = 3; ctx.stroke();
+      ctx.fillStyle = 'rgba(190,205,215,.75)'; ctx.beginPath(); ctx.arc(kx, ky, 27, 0, 6.28); ctx.fill(); ctx.strokeStyle = 'rgba(30,40,50,.8)'; ctx.lineWidth = 2; ctx.stroke();
+      ctx.fillStyle = 'rgba(30,40,50,.75)'; ctx.beginPath(); ctx.arc(kx, ky + 1, 10, 0, 6.28); ctx.arc(kx - 11, ky - 5, 5, 0, 6.28); ctx.arc(kx + 11, ky - 5, 5, 0, 6.28); ctx.fill();      // monkey emblem
       ctx.restore();
     }
     if (flash > 0) { ctx.fillStyle = `rgba(255,70,110,${flash * 0.6})`; ctx.fillRect(0, 0, AW, AH); }
