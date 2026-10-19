@@ -1,7 +1,7 @@
 // Monkeys vs Opps: clear rooms of Opps, pick one of three upgrades, beat a boss every 15 rooms. Stand still to shoot, move to dodge.
 // Drag anywhere with your thumb to move. Your monkey starts at the bottom, opps drop in from the top, and it auto-fires.
 (() => {
-  const VERSION = 'v25';
+  const VERSION = 'v26';
   const cv = document.getElementById('c'); let ctx = cv.getContext('2d'); const mainCtx = ctx;
   let W, H, S, AW, AH, dpr, hudY = 44, UIY = 0, UIB = 14;
   let RW = 0, RH = 0, camX = 0, camY = 0;                   // the room can be bigger than the screen; the camera follows you
@@ -982,7 +982,7 @@
     if (state !== 'play' || (P.dashCd || 0) > 0 || (P.dashT || 0) > 0) return false;
     let l = Math.hypot(dx, dy);
     if (l < 0.2) { dx = P.vx || 0; dy = P.vy || 0; l = Math.hypot(dx, dy); }
-    if (l < 1) { dx = -Math.cos(P.aim); dy = -Math.sin(P.aim); l = 1; }
+    if (l < 0.05) { dx = -Math.cos(P.aim); dy = -Math.sin(P.aim); l = 1; }
     P.dashDir = [dx / l, dy / l]; P.dashT = 0.17; P.dashCd = 0; P.inv = Math.max(P.inv, 0.3);
     tone(420, 0.15, 'sawtooth', 0.05, 380); if (navigator.vibrate && save.set.vib) navigator.vibrate(12);
     return true;
