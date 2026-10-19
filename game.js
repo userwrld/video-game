@@ -1,7 +1,7 @@
 // Monkeys vs Opps: clear rooms of Opps, pick one of three upgrades, beat a boss every 15 rooms. Stand still to shoot, move to dodge.
 // Drag anywhere with your thumb to move. Your monkey starts at the bottom, opps drop in from the top, and it auto-fires.
 (() => {
-  const VERSION = 'v22';
+  const VERSION = 'v23';
   const cv = document.getElementById('c'); let ctx = cv.getContext('2d'); const mainCtx = ctx;
   let W, H, S, AW, AH, dpr, hudY = 44, UIY = 0, UIB = 14;
   let RW = 0, RH = 0, camX = 0, camY = 0;                   // the room can be bigger than the screen; the camera follows you
@@ -1297,11 +1297,10 @@
     let dx = x - joy.ox, dy = y - joy.oy; const d = Math.hypot(dx, dy), R = 40;
     if (d > R) { joy.ox += dx / d * (d - R); joy.oy += dy / d * (d - R); dx = x - joy.ox; dy = y - joy.oy; }   // stick follows the thumb
     joy.x = x; joy.y = y; joy.dx = clamp(dx / R, -1, 1); joy.dy = clamp(dy / R, -1, 1);
-    const tn = performance.now(); (joy.hist = joy.hist || []).push([x, y, tn]); while (joy.hist.length > 1 && tn - joy.hist[0][2] > 120) joy.hist.shift();
+    const tn = performance.now(); (joy.hist = joy.hist || []).push([x, y, tn]); while (joy.hist.length > 1 && tn - joy.hist[0][2] > 90) joy.hist.shift();
     if (state === 'play') {                                                      // quick swipe of the stick in any direction dashes that way
       const h0 = joy.hist[0], mx = x - h0[0], my = y - h0[1], md = Math.hypot(mx, my);
-      if (joy.dbl && !joy.dashed && Math.hypot(joy.dx, joy.dy) > 0.45) { joy.dashed = true; tryDash(joy.dx, joy.dy); }
-      else if (md > 48 && tn - h0[2] > 0 && md / (tn - h0[2]) > 0.45 && tn - (joy.lastDash || 0) > 350) {
+      if (md > 75 && tn - h0[2] > 0 && md / (tn - h0[2]) > 1.2 && tn - (joy.lastDash || 0) > 350) {
         const sm = Math.hypot(joy.dx, joy.dy);                                    // only a swipe that pushes the stick the way it's already pointing counts, so easing back to centre never dashes backwards
         if (sm > 0.5 && (mx * joy.dx + my * joy.dy) / (md * sm) > 0.7) { joy.lastDash = tn; joy.hist.length = 0; tryDash(joy.dx, joy.dy); }
       }
