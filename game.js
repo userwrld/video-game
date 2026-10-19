@@ -1,7 +1,7 @@
 // Monkeys vs Opps: clear rooms of Opps, pick one of three upgrades, beat a boss every 10 rooms. Stand still to shoot, move to dodge.
 // Drag anywhere with your thumb to move. Your monkey starts at the bottom, opps drop in from the top, and it auto-fires.
 (() => {
-  const VERSION = 'v59';
+  const VERSION = 'v60';
   const cv = document.getElementById('c'); let ctx = cv.getContext('2d'); const mainCtx = ctx;
   let W, H, S, AW, AH, dpr, hudY = 44, UIY = 0, UIB = 14;
   let RW = 0, RH = 0, camX = 0, camY = 0;                   // the room can be bigger than the screen; the camera follows you
@@ -305,7 +305,7 @@
   function heroArt(id, card) { const k = id + (card ? 'c' : ''); if (!heroArtC[k]) { const im = new Image(); im.src = 'art/hero_' + id + (card ? '_card' : '') + '.webp'; heroArtC[k] = im; } return heroArtC[k]; }
   const imgOk = im => im && im.complete && im.naturalWidth > 0;
   // where each character's weapon (or hand) sits in its artwork, in tenths of the picture: p = grip, t = tip/palm, s = where the legs start
-  const HERO_W = 3.5;                                                    // sprite width in player radii
+  const HERO_W = 5.2;                                                    // sprite width in player radii
   const HERO_ART = {
     volt: { p: [4.6, 5.0], t: [7.7, 8.1], s: 0.68 }, gunner: { p: [5.2, 5.3], t: [8.2, 7.7], s: 0.68 }, blaze: { p: [3.2, 3.0], t: [0.6, 2.0], s: 0.52, f: -1 },
     frost: { p: [8.0, 3.3], t: [9.7, 4.0], s: 0.55 }, toxic: { p: [3.5, 4.6], t: [0.5, 2.7], s: 0.55, f: -1 }, dj: { p: [8.0, 3.3], t: [9.6, 3.6], s: 0.6 }, sand: { p: [1.5, 2.0], t: [1.2, 1.4], s: 0.6, f: -1 }, gear: { p: [2.2, 3.6], t: [8.8, 1.4], s: 0.62 }, tide: { p: [1.5, 3.3], t: [0.8, 0.8], s: 0.6, f: -1 }, star: { p: [8.0, 3.8], t: [9.7, 3.4], s: 0.62 }, storm: { p: [7.5, 5.0], t: [9.3, 5.0], s: 0.6 }, leaf: { p: [3.0, 3.2], t: [1.2, 2.8], s: 0.6, f: -1 }, gravity: { p: [3.0, 3.2], t: [1.0, 2.9], s: 0.6, f: -1 }, slash: { p: [8.6, 2.6], t: [9.4, 0.8], s: 0.55 }, thunder: { p: [5.0, 6.5], t: [9.7, 8.0], s: 0.7 }, bling: { p: [2.2, 3.4], t: [1.8, 1.8], s: 0.52, f: -1 },
@@ -2592,7 +2592,7 @@
     if (state === 'play' || state === 'clear') list.push({ y: P.y + P.r * 3.0, f: () => {
       const blink = P.inv > 0 && Math.floor(P.inv * 14) % 2 === 0;
       ctx.globalAlpha = blink ? 0.35 : 1;
-      { const bw = 40, bx = P.x - bw / 2, by = P.y - P.r * (imgOk(heroArt(P.ch.id)) ? 5.0 : 2.2), hp = clamp(P.hp / P.hpMax, 0, 1); ctx.fillStyle = 'rgba(0,0,0,.7)'; ctx.fillRect(bx - 1, by - 1, bw + 2, 7); ctx.fillStyle = hp > 0.35 ? '#5fe070' : '#ff6a5a'; ctx.fillRect(bx, by, bw * hp, 5); }
+      { const bw = 40, bx = P.x - bw / 2, by = P.y - P.r * (imgOk(heroArt(P.ch.id)) ? 7.2 : 2.2), hp = clamp(P.hp / P.hpMax, 0, 1); ctx.fillStyle = 'rgba(0,0,0,.7)'; ctx.fillRect(bx - 1, by - 1, bw + 2, 7); ctx.fillStyle = hp > 0.35 ? '#5fe070' : '#ff6a5a'; ctx.fillRect(bx, by, bw * hp, 5); }
       const art = heroArt(P.ch.id);
       if (imgOk(art)) {                                                  // the supplied character artwork, animated
         const sp = Math.max(1, P.speed);
