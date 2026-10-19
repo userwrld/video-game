@@ -1,7 +1,7 @@
 // Monkeys vs Opps: clear rooms of Opps, pick one of three upgrades, beat a boss every 10 rooms. Stand still to shoot, move to dodge.
 // Drag anywhere with your thumb to move. Your monkey starts at the bottom, opps drop in from the top, and it auto-fires.
 (() => {
-  const VERSION = 'v36';
+  const VERSION = 'v37';
   const cv = document.getElementById('c'); let ctx = cv.getContext('2d'); const mainCtx = ctx;
   let W, H, S, AW, AH, dpr, hudY = 44, UIY = 0, UIB = 14;
   let RW = 0, RH = 0, camX = 0, camY = 0;                   // the room can be bigger than the screen; the camera follows you
@@ -1252,7 +1252,8 @@
       b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt; if (b.it) b.rot += dt * 9;
       if (b.x < 0 || b.x > RW || b.y < 0 || b.y > RH) b.life = 0;
       else if (walls.length) { const wl = inWall(b.x, b.y, b.r); if (wl) { b.life = 0; if (wl.max) damageWall(wl, b.dmg * 0.6); } }
-      if (Math.hypot(P.x - b.x, P.y - b.y) < P.r - 2 + b.r && P.inv <= 0) { b.life = 0; hurtPlayer(b.dmg); }
+      { const py = clamp(b.y, P.y, P.y + P.r * 1.9);                                  // the hit area covers the whole body, head to hips, not just the head
+        if (Math.hypot(P.x - b.x, py - b.y) < P.r * 0.95 + b.r * 0.9 && P.inv <= 0) { b.life = 0; hurtPlayer(b.dmg); } }
     }
     ebul = ebul.filter(b => b.life > 0);
 
