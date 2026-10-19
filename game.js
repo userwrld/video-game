@@ -1,7 +1,7 @@
 // Monkeys vs Opps: clear rooms of Opps, pick one of three upgrades, beat a boss every 10 rooms. Stand still to shoot, move to dodge.
 // Drag anywhere with your thumb to move. Your monkey starts at the bottom, opps drop in from the top, and it auto-fires.
 (() => {
-  const VERSION = 'v62';
+  const VERSION = 'v63';
   const cv = document.getElementById('c'); let ctx = cv.getContext('2d'); const mainCtx = ctx;
   let W, H, S, AW, AH, dpr, hudY = 44, UIY = 0, UIB = 14;
   let RW = 0, RH = 0, camX = 0, camY = 0;                   // the room can be bigger than the screen; the camera follows you
@@ -326,15 +326,16 @@
       ctx.drawImage(art, sg < 0 ? 0 : nw / 2, hs, nw / 2, nh - hs, -w / 4, 0, w / 2, h - hy); ctx.restore();
     }
     ctx.save(); ctx.translate(0, -h + hy); ctx.translate(-(o.kick || 0) * w * 0.02, 0); ctx.rotate(rot);                         // body + head, rotating about the hips
-    const rows = hs + nh * 0.03, rh = hy + h * 0.03, a0 = 0.17, aw = 0.27, wside = cfg.t[0] > 5 ? 1 : -1;
-    ctx.save(); ctx.beginPath(); ctx.rect(-w, -h, 2 * w, h * 2);
-    for (const sg of [-1, 1]) ctx.rect(sg < 0 ? -w / 2 : w / 2 - aw * w, -hy + a0 * h, aw * w, (sp - a0) * h + h * 0.01);
+    const rows = hs + nh * 0.03, rh = hy + h * 0.03, aw = 0.27, a0 = 0.17, wside = cfg.t[0] > 5 ? 1 : -1;
+    const px = (cfg.p[0] / 10 - 0.5) * w, py = cfg.p[1] / 10 * h - hy, tx = (cfg.t[0] / 10 - 0.5) * w, ty = cfg.t[1] / 10 * h - hy;       // grip and tip, hip-relative
+    const ang = Math.atan2(ty - py, tx - px), len = Math.hypot(tx - px, ty - py), cr = Math.max(h * 0.13, len * 0.2), arm = o.arm || 0, kk = o.kick || 0;
+    const capsule = () => { ctx.beginPath(); ctx.save(); ctx.translate(px, py); ctx.rotate(ang); ctx.rect(-cr * 1.1, -cr, len + cr * 1.6, cr * 2); ctx.restore(); };
+    const free = -wside, fsw = Math.sin(t + (free > 0 ? 0 : Math.PI)) * mv * 0.22 + Math.sin((o.idle || 0) * 2 + free) * 0.015;
+    ctx.save(); ctx.beginPath(); ctx.rect(-w, -h, 2 * w, h * 2);                                                                 // body, head and free arm; the gun piece is cut out
+    ctx.save(); ctx.translate(px, py); ctx.rotate(ang); ctx.rect(-cr * 1.1, -cr, len + cr * 1.6, cr * 2); ctx.restore();
     ctx.clip('evenodd'); ctx.drawImage(art, 0, 0, nw, rows, -w / 2, -hy, w, rh); ctx.restore();
-    for (const sg of [-1, 1]) {                                                                // arms: the free arm swings; the weapon arm stays on target
-      const free = sg !== wside, sw = (free ? Math.sin(t + (sg > 0 ? 0 : Math.PI)) * mv * 0.5 + Math.sin((o.idle || 0) * 2 + sg) * 0.02 : (o.arm || 0) - (o.kick || 0) * 0.07 + Math.sin((o.idle || 0) * 3) * 0.015 + Math.sin(t * 2) * 0.03 * mv), ax = sg < 0 ? -w / 2 : w / 2 - aw * w;
-      ctx.save(); ctx.translate(ax + aw * w / 2 + (free ? 0 : -(o.kick || 0) * w * 0.025 * (wside)), -hy + (a0 + 0.04) * h); ctx.rotate(sw * (wside > 0 || free ? 1 : -1));
-      ctx.drawImage(art, sg < 0 ? 0 : nw * (1 - aw), a0 * nh, nw * aw, (sp - a0) * nh + nh * 0.01, -aw * w / 2, -0.04 * h, aw * w, (sp - a0) * h + h * 0.01); ctx.restore();
-    }
+    ctx.save(); ctx.translate(px - Math.cos(ang + arm) * kk * w * 0.03, py - Math.sin(ang + arm) * kk * w * 0.03); ctx.rotate(arm + Math.sin((o.idle || 0) * 3) * 0.012 + Math.sin(t * 2) * 0.03 * mv); ctx.translate(-px, -py);   // the weapon: its own piece, pivoting at the grip
+    capsule(); ctx.clip(); ctx.drawImage(art, 0, 0, nw, rows, -w / 2, -hy, w, rh); ctx.restore();
     ctx.restore();
     ctx.restore();
     return true;
@@ -345,13 +346,13 @@
     const sp = Math.max(1, P.speed), mvx = (P.vx || 0) / sp, moving = (P.mv || 0) > 0.12;
     P.flip = (cfg.f || 1) * (enemies.length ? (Math.cos(P.aim) < 0 ? -1 : 1) : (moving && Math.abs(mvx) > 0.25 ? Math.sign(mvx) : (Math.cos(P.aim) < 0 ? -1 : 1)));
     const la = P.flip > 0 ? P.aim : Math.PI - P.aim, phi = Math.atan2((cfg.t[1] - cfg.p[1]) * h, (cfg.t[0] - cfg.p[0]) * w);
-    let d = la - phi; d = Math.atan2(Math.sin(d), Math.cos(d)); P.rotA = enemies.length ? clamp(d * 0.45, -0.4, 0.4) : 0; P.armA = enemies.length ? clamp(d * 0.2, -0.18, 0.18) : 0;
+    let d = la - phi; d = Math.atan2(Math.sin(d), Math.cos(d)); P.rotA = 0; P.armT = enemies.length ? clamp(d, -1.3, 1.3) : 0; P.armA = (P.armA || 0) + (P.armT - (P.armA || 0)) * 0.35;
   }
   function heroMuzzle(a) {                                               // the tip of the weapon (or the palm) in the world, where shots come from
     const art = heroArt(P.ch.id), cfg = HERO_ART[P.ch.id];
     if (!imgOk(art) || !cfg) return { x: P.x + Math.cos(a) * 18 * ESC * 2, y: P.y + Math.sin(a) * 18 * ESC * 2 };
-    const w = P.r * HERO_W, h = w * art.naturalHeight / art.naturalWidth, hipY = -h + cfg.s * h, tx = (cfg.t[0] / 10 - 0.5) * w, ty = (cfg.t[1] / 10 - 1) * h - hipY, rot = 0;
-    const c = Math.cos(rot), sn = Math.sin(rot), vx = tx * c - ty * sn, vy = tx * sn + ty * c, fl = P.flip || 1;
+    const w = P.r * HERO_W, h = w * art.naturalHeight / art.naturalWidth, hipY = -h + cfg.s * h, gx = (cfg.p[0] / 10 - 0.5) * w, gy = (cfg.p[1] / 10 - 1) * h - hipY, rx = (cfg.t[0] / 10 - 0.5) * w - gx, ry = (cfg.t[1] / 10 - 1) * h - hipY - gy, arm = P.armA || 0;
+    const c = Math.cos(arm), sn = Math.sin(arm), vx = gx + rx * c - ry * sn, vy = gy + rx * sn + ry * c, fl = P.flip || 1;
     return { x: P.x + fl * vx, y: P.y + P.r * 2.6 + hipY + vy };
   }
   const ESC = 0.5;                                                       // everything is half its old size
@@ -525,7 +526,7 @@
       e = { kind, boss: 1, bn, r: 52 * ESC * 0.7, hp, max: hp, sp: 30, dmg: 20 + bn * 6, bdmg: 9 + bn * 3.5, val: 40 * bn, col: '#e84393', pt: 2, sum: 6 };
     } else {
       const T = TYPES[kind];
-      e = { kind, r: T.r, hp: T.hp * hs, max: T.hp * hs, sp: T.sp, dmg: T.dmg * ds, bdmg: 6 * ds, val: T.val, col: T.col, cd: rand(1, 2), st: 0, stt: 0 };
+      e = { kind, r: T.r * 1.35, hp: T.hp * hs, max: T.hp * hs, sp: T.sp, dmg: T.dmg * ds, bdmg: 6 * ds, val: T.val, col: T.col, cd: rand(1, 2), st: 0, stt: 0 };
     }
     const LK = { runt: ['monkey', 'rat', 'bat'], brute: ['gorilla', 'boar'], tank: ['rhino', 'hippo'], shooter: ['parrot', 'mandrill'], dasher: ['jaguar', 'wolf'], swarm: ['rat', 'monkey', 'bat'], shield: ['gorilla', 'boar', 'rhino'], bomber: ['monkey', 'rat', 'mandrill'], sniper: ['parrot', 'mandrill', 'wolf'], giant: ['gorilla', 'rhino', 'hippo'], clone: ['kingShadow'] };
     if (kind !== 'boss') {
