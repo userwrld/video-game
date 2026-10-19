@@ -1,7 +1,7 @@
 // Monkeys vs Opps: clear rooms of Opps, pick one of three upgrades, beat a boss every 15 rooms. Stand still to shoot, move to dodge.
 // Drag anywhere with your thumb to move. Your monkey starts at the bottom, opps drop in from the top, and it auto-fires.
 (() => {
-  const VERSION = 'v17';
+  const VERSION = 'v18';
   const cv = document.getElementById('c'); let ctx = cv.getContext('2d'); const mainCtx = ctx;
   let W, H, S, AW, AH, dpr, hudY = 44, UIY = 0, UIB = 14;
   let RW = 0, RH = 0, camX = 0, camY = 0;                   // the room can be bigger than the screen; the camera follows you
@@ -371,7 +371,7 @@
     if (bossRoom(room)) { RW = AW; RH = AH; }                                      // boss arenas fit on one screen
     else {
       const r = seeded(room * 37 + 11), f = Math.min(1, 0.55 + room * 0.045);
-      RW = AW * (1 + (0.35 + r() * 0.55) * f); RH = AH * (1 + (0.8 + r() * 0.9) * f);
+      RW = AW * (1 + (0.1 + r() * 0.3) * f); RH = AH * (1 + (0.4 + r() * 0.5) * f);
       const k = S * Math.min(dpr, 2); while (RW * RH * k * k > 8.5e6) { RW *= 0.94; RH *= 0.94; }
       RW = Math.max(AW, Math.round(RW)); RH = Math.max(AH, Math.round(RH));
     }
@@ -2276,7 +2276,7 @@
 
     drawLighting(now);
     { const vg = ctx.createRadialGradient(AW / 2, AH * 0.52, Math.min(AW, AH) * 0.32, AW / 2, AH * 0.52, Math.max(AW, AH) * 0.78); vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(4,2,12,.55)'); ctx.fillStyle = vg; ctx.fillRect(0, 0, AW, AH); }
-    if ((state === 'play' || state === 'clear') && (joy.on || run.room === 1)) {                  // thumb stick
+    if ((state === 'play' || state === 'clear') && joy.on) {                  // thumb stick, only while touching
       const sx = joy.on ? joy.ox : AW / 2, sy = joy.on ? joy.oy : AH * 0.66, kx = sx + (joy.on ? joy.dx * 40 : 0), ky = sy + (joy.on ? joy.dy * 40 : 0), al = joy.on ? 1 : 0.35;
       ctx.save(); ctx.globalAlpha = al; ctx.fillStyle = 'rgba(255,255,255,.08)'; ctx.beginPath(); ctx.arc(sx, sy, 46, 0, 6.28); ctx.fill(); ctx.strokeStyle = 'rgba(255,255,255,.4)'; ctx.lineWidth = 3; ctx.stroke();
       ctx.fillStyle = 'rgba(190,205,215,.75)'; ctx.beginPath(); ctx.arc(kx, ky, 19, 0, 6.28); ctx.fill(); ctx.strokeStyle = 'rgba(30,40,50,.8)'; ctx.lineWidth = 2; ctx.stroke();
