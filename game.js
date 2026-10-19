@@ -1,7 +1,7 @@
 // Monkeys vs Opps: clear rooms of Opps, pick one of three upgrades, beat a boss every 15 rooms. Stand still to shoot, move to dodge.
 // Drag anywhere with your thumb to move. Your monkey starts at the bottom, opps drop in from the top, and it auto-fires.
 (() => {
-  const VERSION = 'v20';
+  const VERSION = 'v21';
   const cv = document.getElementById('c'); let ctx = cv.getContext('2d'); const mainCtx = ctx;
   let W, H, S, AW, AH, dpr, hudY = 44, UIY = 0, UIB = 14;
   let RW = 0, RH = 0, camX = 0, camY = 0;                   // the room can be bigger than the screen; the camera follows you
@@ -313,7 +313,7 @@
   function buildPlayer() {
     const ch = CHARS[sel], w = WEAP[ch.weapon];
     P = Object.assign({}, w, {
-      ch, x: RW / 2, y: RH - BOT - 70, r: 14, hp: ch.hp, hpMax: ch.hp, speed: ch.spd, inv: 1, cd: 0.4, aim: -Math.PI / 2, tick: 0,
+      ch, x: RW / 2, y: RH - BOT - 130, r: 14, hp: ch.hp, hpMax: ch.hp, speed: ch.spd, inv: 1, cd: 0.4, aim: -Math.PI / 2, tick: 0,
       crit: 0.05, magnet: 60, bmult: 1, dr: 0, vamp: 0, invT: 0.7, rico: w.rico || 0, homing: 0, explo: 0, cluster: 0, burn: w.burn || 0,
       spreadFire: 0, stun: 0, boom: w.boom || 0, lives: 2,
       critMul: 2, freeze: 0.05, freezeDur: 0, pois: w.pois || 0, poisDur: 0, pSpread: 0, shatter: 0, psize: 1, side: 0, rear: 0, dodge: 0, shieldHits: 0, cdr: 1,
@@ -391,7 +391,7 @@
       let cx = 0, cy = 0, ok = false;
       for (let tries = 0; tries < 40 && !ok; tries++) {
         cx = rand(PAD + 50, RW - PAD - 50); cy = rand(TOP + 70, RH - BOT - (tries < 30 ? 330 : 120));
-        ok = !inWall(cx, cy, 44) && Math.hypot(cx - RW / 2, cy - (RH - BOT - 70)) > (tries < 30 ? 320 : 200) && !(Math.abs(cx - RW / 2) < 90 && cy < TOP + 130);
+        ok = !inWall(cx, cy, 44) && Math.hypot(cx - RW / 2, cy - (RH - BOT - 130)) > (tries < 30 ? 320 : 200) && !(Math.abs(cx - RW / 2) < 90 && cy < TOP + 130);
       }
       for (let k = 0; k < size; k++) {
         const kind = items[i + k];
@@ -405,7 +405,7 @@
   function startRoom() {
     enemies = []; pbul = []; ebul = []; pickups = []; fx = []; zones = []; mines = []; roomTotal = 0; decal.clear = true; clearT = 0; spawnT = 0.8; bannerT = 1.4; shake = 0; flash = 0;
     const room = run.room; worldInit(room);
-    P.x = RW / 2; P.y = RH - BOT - 70; P.inv = Math.max(P.inv, 1); P.vx = P.vy = 0; snapCamera();
+    P.x = RW / 2; P.y = RH - BOT - 130; P.inv = Math.max(P.inv, 1); P.vx = P.vy = 0; snapCamera();
     P.hurtRoom = false; genWalls(room); genHazards(room); roomT = 0; P.shieldHits = P.shieldMax;
     takeSnap();
     queue = [];
@@ -491,7 +491,7 @@
         const k = OBJ[Math.floor(rnd() * OBJ.length)], [ow, oh] = SIZE[k];
         const ox = xa + rnd() * Math.max(1, xb - xa - ow), oy = ya + rnd() * Math.max(1, yb - ya - oh);
         if (oy < TOP + 110 && ox < RW / 2 + 90 && ox + ow > RW / 2 - 90) continue;
-        if (oy + oh > RH - BOT - 130 && ox < RW / 2 + 80 && ox + ow > RW / 2 - 80) continue;
+        if (oy + oh > RH - BOT - 190 && ox < RW / 2 + 80 && ox + ow > RW / 2 - 80) continue;
         if (walls.some(o => ox < o.x + o.w + gap && ox + ow > o.x - gap && oy < o.y + o.h + gap && oy + oh > o.y - gap)) continue;
         walls.push({ x: ox, y: oy, w: ow, h: oh, i: walls.length, k, hp: k === 'barrel' ? 20 : k === 'crate' ? 36 : 0, max: k === 'barrel' ? 20 : k === 'crate' ? 36 : 0 });
         continue;
@@ -500,7 +500,7 @@
       const h = kind < 0.45 ? 20 + rnd() * 10 : kind < 0.75 ? 56 + rnd() * 60 : w;
       const x = xa + rnd() * Math.max(1, xb - xa - w), y = ya + rnd() * Math.max(1, yb - ya - h);
       if (y < TOP + 110 && x < RW / 2 + 90 && x + w > RW / 2 - 90) continue;                        // keep the exit door clear
-      if (y + h > RH - BOT - 130 && x < RW / 2 + 80 && x + w > RW / 2 - 80) continue;               // and the spot you walk in on
+      if (y + h > RH - BOT - 190 && x < RW / 2 + 80 && x + w > RW / 2 - 80) continue;               // and the spot you walk in on
       if (walls.some(o => x < o.x + o.w + gap && x + w > o.x - gap && y < o.y + o.h + gap && y + h > o.y - gap)) continue;
       walls.push({ x, y, w, h, i: walls.length });
     }
@@ -511,7 +511,7 @@
   function pathExists() {
     const { cols, rows, blocked } = nav, seen = new Uint8Array(cols * rows);
     const cell = (x, y) => clamp(Math.floor(y / CELL), 0, rows - 1) * cols + clamp(Math.floor(x / CELL), 0, cols - 1);
-    const start = cell(RW / 2, RH - BOT - 70), goal = cell(RW / 2, TOP + 26), q = [start]; seen[start] = 1;
+    const start = cell(RW / 2, RH - BOT - 130), goal = cell(RW / 2, TOP + 26), q = [start]; seen[start] = 1;
     for (let h = 0; h < q.length; h++) {
       const c = q[h]; if (c === goal) return true;
       const ci = c % cols, cj = (c / cols) | 0;
@@ -606,7 +606,7 @@
     for (let tries = 0; hazards.length < n && tries < 100; tries++) {
       const k = env.hz[Math.floor(rnd() * env.hz.length)];
       const h = { k, t: rnd() * 3, x: xa + rnd() * (xb - xa), y: ya + rnd() * (yb - ya), r: k === 'toxic' ? 36 : 26, w: 46, h: 46, hit: false, st: 0 };
-      if (k === 'laser') { h.x = PAD; h.w = RW - PAD * 2; if (Math.abs(h.y - (RH - BOT - 70)) < 120) continue; }
+      if (k === 'laser') { h.x = PAD; h.w = RW - PAD * 2; if (Math.abs(h.y - (RH - BOT - 130)) < 120) continue; }
       if (Math.abs(h.x - RW / 2) < 80 && h.y < TOP + 140) continue;                              // keep the door lane clear
       if (walls.some(w => h.x > w.x - 34 && h.x < w.x + w.w + 34 && h.y > w.y - 34 && h.y < w.y + w.h + 34) && k !== 'laser') continue;
       if (hazards.some(o => o.k !== 'laser' && k !== 'laser' && Math.hypot(o.x - h.x, o.y - h.y) < 90) || hazards.some(o => o.k === 'laser' && k === 'laser' && Math.abs(o.y - h.y) < 90)) continue;
@@ -2361,12 +2361,6 @@
       ctx.strokeStyle = 'rgba(0,0,0,.8)'; ctx.lineWidth = 1.2; rr(px, py + ps + 3, ps, 9, 4); ctx.stroke(); txt(Math.ceil(P.hp) + '/' + P.hpMax, px + ps / 2, py + ps + 8, 7, '#fff');
       for (let i = 0; i < 2; i++) { ctx.fillStyle = i < P.lives ? '#ff4d6d' : 'rgba(255,255,255,.18)'; ctx.beginPath(); ctx.arc(px + ps + 10 + i * 15, py + 10, 6, 0, 6.28); ctx.fill(); ctx.strokeStyle = 'rgba(0,0,0,.6)'; ctx.lineWidth = 1; ctx.stroke(); }
       if (P.shieldMax) for (let i = 0; i < P.shieldMax; i++) { ctx.fillStyle = i < P.shieldHits ? '#7df9ff' : 'rgba(255,255,255,.18)'; ctx.beginPath(); ctx.arc(px + ps + 10 + i * 15, py + 28, 5, 0, 6.28); ctx.fill(); }
-      { const dx2 = AW - 44, dy2 = py + 28, dr = P.dashCd > 0 ? 1 - P.dashCd / 0.8 : 1;                    // dash button
-        btns.push({ x: dx2 - 36, y: dy2 - 36, w: 72, h: 72, cb: () => tryDash(joy.dx, joy.dy), label: 'dash' });
-        const dg = ctx.createLinearGradient(dx2 - 26, dy2 - 26, dx2 + 26, dy2 + 26); dg.addColorStop(0, dr >= 1 ? '#c9d6d2' : '#6d6a85'); dg.addColorStop(1, dr >= 1 ? '#5a6a66' : '#3a3852'); ctx.fillStyle = dg; ctx.beginPath(); ctx.arc(dx2, dy2, 26, 0, 6.28); ctx.fill(); ctx.fillStyle = '#16211f'; ctx.beginPath(); ctx.arc(dx2, dy2, 22, 0, 6.28); ctx.fill();
-        if (dr < 1) { ctx.fillStyle = 'rgba(120,150,170,.5)'; ctx.beginPath(); ctx.moveTo(dx2, dy2); ctx.arc(dx2, dy2, 22, -Math.PI / 2, -Math.PI / 2 + 6.28 * dr); ctx.closePath(); ctx.fill(); }
-        ctx.strokeStyle = dr >= 1 ? '#f0f6f4' : '#8a9a98'; ctx.lineWidth = 3.5; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; for (const o of [-7, 3]) { ctx.beginPath(); ctx.moveTo(dx2 - 7, dy2 + o - 6); ctx.lineTo(dx2, dy2 + o + 1); ctx.lineTo(dx2 + 7, dy2 + o - 6); ctx.stroke(); }
-        txt('DASH', dx2, dy2 + 17, 7, '#cfe0dc'); }
       btns.push({ x: cx - 34, y: cy - 34, w: 68, h: 68, cb: useAbility, label: 'ability' });                // ability, like the potion button
       glowAt(cx, cy, 90, ready ? '#ffd34d' : '#6a5a9a', ready ? 0.4 + 0.2 * Math.sin(now / 200) : 0.12);
       const rg = ctx.createLinearGradient(cx - 26, cy - 26, cx + 26, cy + 26); rg.addColorStop(0, ready ? '#c9d6d2' : '#6d6a85'); rg.addColorStop(1, ready ? '#5a6a66' : '#3a3852');
