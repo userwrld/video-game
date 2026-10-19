@@ -1,7 +1,7 @@
 // Monkeys vs Opps: clear rooms of Opps, pick one of three upgrades, beat a boss every 10 rooms. Stand still to shoot, move to dodge.
 // Drag anywhere with your thumb to move. Your monkey starts at the bottom, opps drop in from the top, and it auto-fires.
 (() => {
-  const VERSION = 'v49';
+  const VERSION = 'v50';
   const cv = document.getElementById('c'); let ctx = cv.getContext('2d'); const mainCtx = ctx;
   let W, H, S, AW, AH, dpr, hudY = 44, UIY = 0, UIB = 14;
   let RW = 0, RH = 0, camX = 0, camY = 0;                   // the room can be bigger than the screen; the camera follows you
@@ -302,7 +302,7 @@
   // where each character's weapon (or hand) sits in its artwork, in tenths of the picture: p = grip, t = tip/palm, s = where the legs start
   const HERO_ART = {
     volt: { p: [4.6, 5.0], t: [7.7, 8.1], s: 0.68 }, gunner: { p: [5.2, 5.3], t: [8.2, 7.7], s: 0.68 }, blaze: { p: [3.2, 3.0], t: [0.6, 2.0], s: 0.52, f: -1 },
-    frost: { p: [8.0, 3.3], t: [9.7, 4.0], s: 0.55 }, toxic: { p: [7.6, 3.2], t: [9.1, 6.2], s: 0.5 }, thunder: { p: [5.0, 6.5], t: [9.7, 8.0], s: 0.7 }, bling: { p: [2.2, 3.4], t: [1.8, 1.8], s: 0.52, f: -1 },
+    frost: { p: [8.0, 3.3], t: [9.7, 4.0], s: 0.55 }, toxic: { p: [7.6, 3.2], t: [9.1, 6.2], s: 0.5 }, slash: { p: [8.6, 2.6], t: [9.4, 0.8], s: 0.55 }, thunder: { p: [5.0, 6.5], t: [9.7, 8.0], s: 0.7 }, bling: { p: [2.2, 3.4], t: [1.8, 1.8], s: 0.52, f: -1 },
     tank: { p: [5.0, 4.8], t: [9.5, 5.9], s: 0.62 }, shadow: { p: [7.5, 3.3], t: [9.2, 5.5], s: 0.5 }, plasma: { p: [8.0, 5.0], t: [9.6, 0.4], s: 0.6 },
     chaos: { p: [5.3, 5.6], t: [9.5, 8.3], s: 0.68 }, royal: { p: [7.0, 4.0], t: [8.2, 4.2], s: 0.5 }, crimson: { p: [4.3, 5.4], t: [5.5, 7.5], s: 0.62 },
     sky: { p: [7.6, 3.0], t: [9.0, 1.8], s: 0.55 }, medic: { p: [7.7, 2.8], t: [9.5, 1.5], s: 0.55 }, robin: { p: [4.6, 4.5], t: [9.6, 1.3], s: 0.6 }, rogue: { p: [7.9, 4.0], t: [9.3, 5.7], s: 0.5 },
