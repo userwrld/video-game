@@ -1,7 +1,7 @@
 // Monkeys vs Opps: clear rooms of Opps, pick one of three upgrades, beat a boss every 10 rooms. Stand still to shoot, move to dodge.
 // Drag anywhere with your thumb to move. Your monkey starts at the bottom, opps drop in from the top, and it auto-fires.
 (() => {
-  const VERSION = 'v46';
+  const VERSION = 'v47';
   const cv = document.getElementById('c'); let ctx = cv.getContext('2d'); const mainCtx = ctx;
   let W, H, S, AW, AH, dpr, hudY = 44, UIY = 0, UIB = 14;
   let RW = 0, RH = 0, camX = 0, camY = 0;                   // the room can be bigger than the screen; the camera follows you
@@ -43,11 +43,11 @@
 
   // ---------- save data ----------
   let save = { ban: 0, owned: { blaze: 1, gunner: 1 }, best: 0, sel: 0, perm: {}, snap: null, stats: { kills: 0, rooms: 0, bosses: 0, coins: 0, runs: 0, evos: 0, flawless: 0, played: {} }, ach: {}, set: { sfx: 1, music: 1, shake: 1, vib: 1 } };
-  const CHAR_IDS = ['blaze', 'gunner', 'volt', 'frost', 'toxic', 'thunder', 'tank', 'shadow', 'plasma', 'chaos', 'slash', 'don', 'disco', 'robin', 'dyna', 'royal', 'crimson', 'sky', 'rogue'], PERM_IDS = ['lvl', 'hp', 'dmg', 'rate', 'spd', 'ban', 'crit'];
+  const CHAR_IDS = ['blaze', 'gunner', 'volt', 'frost', 'toxic', 'thunder', 'tank', 'shadow', 'plasma', 'chaos', 'slash', 'don', 'disco', 'robin', 'dyna', 'royal', 'crimson', 'sky', 'rogue', 'medic'], PERM_IDS = ['lvl', 'hp', 'dmg', 'rate', 'spd', 'ban', 'crit'];
   try {
     const raw = JSON.parse(localStorage.getItem('monkey-opps') || localStorage.getItem('banana-breach') || '{}');       // only accept values of the expected shape
     const num = (v, max) => (Number.isFinite(v) ? Math.min(max, Math.max(0, Math.floor(v))) : 0);
-    save.ban = num(raw.ban, 1e9); save.best = num(raw.best, 1e6); save.sel = num(raw.sel, 18);
+    save.ban = num(raw.ban, 1e9); save.best = num(raw.best, 1e6); save.sel = num(raw.sel, 19);
     if (raw.owned && typeof raw.owned === 'object') for (const id of CHAR_IDS) if (raw.owned[id] === 1) save.owned[id] = 1;
     if (raw.stats && typeof raw.stats === 'object') { for (const k of ['kills', 'rooms', 'bosses', 'coins', 'runs', 'evos', 'flawless']) save.stats[k] = num(raw.stats[k], 1e9); if (raw.stats.played && typeof raw.stats.played === 'object') for (const id of CHAR_IDS) if (raw.stats.played[id]) save.stats.played[id] = 1; }
     if (raw.ach && typeof raw.ach === 'object') for (const k of Object.keys(raw.ach).slice(0, 40)) if (raw.ach[k] === 1 && /^[a-z0-9_]{1,24}$/.test(k)) save.ach[k] = 1;
@@ -146,6 +146,7 @@
     { tee: 'cyber', mouth: 'flat', bg: '#d02030', cloth: '#15151c', id: 'crimson', name: 'Crimson Monkey', short: 'Crimson', role: 'Assault rifle', weapon: 'tommy',  cost: 6500,  fur: '#6a4430', skin: '#d9b48a', acc: 'cyberRed', hp: 105, spd: 156, ability: 'frenzy', passive: '+15% crit chance', weak: 'Messy aim', blurb: 'Red-lit special forces. Sprays a wall of bullets.' },
     { tee: 'plain', mouth: 'grin', bg: '#2f8cf0', cloth: '#2a4aa8', id: 'sky',     name: 'Sky Monkey',     short: 'Sky',     role: 'CDs',           weapon: 'cd',     cost: 7500,  fur: '#1d1d24', skin: '#d9a078', acc: 'phones', hp: 105, spd: 160, ability: 'nova',   passive: 'Discs bounce once more', weak: 'Slow to kill', blurb: 'Headphones on, thumbs up. Throws discs that bounce.' },
     { tee: 'cyber', mouth: 'flat', bg: '#b01040', cloth: '#15151c', id: 'rogue',   name: 'Rogue Monkey',   short: 'Rogue',   role: 'Stealth',       weapon: 'shadow', cost: 9500,  fur: '#6a4430', skin: '#d9b48a', acc: 'cyberRed', hp: 100, spd: 166, ability: 'blink',  passive: '+15% crit chance', weak: 'Low health', blurb: 'Red-neon operative who slips in and out of the dark.' },
+    { tee: 'plain', mouth: 'grin', bg: '#12c8c8', cloth: '#e8f4f4', id: 'medic',   name: 'Medic Monkey',   short: 'Medic',   role: 'Healing gun',   weapon: 'poison', cost: 8000,  fur: '#8a4a28', skin: '#e0b48a', acc: 'visor',  hp: 115, spd: 156, ability: 'shield', passive: 'Heals a little each room', weak: 'Low damage', blurb: 'Patches himself up between fights with a glowing healing blaster.' },
   ];
 
   // ---------- upgrades ----------
@@ -299,11 +300,11 @@
   const imgOk = im => im && im.complete && im.naturalWidth > 0;
   // where each character's weapon (or hand) sits in its artwork, in tenths of the picture: p = grip, t = tip/palm, s = where the legs start
   const HERO_ART = {
-    volt: { p: [4.6, 5.0], t: [7.7, 8.1], s: 0.68 }, gunner: { p: [5.2, 5.3], t: [8.2, 7.7], s: 0.68 }, blaze: { p: [7.4, 3.3], t: [8.8, 5.7], s: 0.5 },
-    frost: { p: [7.6, 3.3], t: [9.1, 6.0], s: 0.5 }, toxic: { p: [7.6, 3.2], t: [9.1, 6.2], s: 0.5 }, thunder: { p: [8.0, 4.9], t: [9.8, 7.0], s: 0.6 },
+    volt: { p: [4.6, 5.0], t: [7.7, 8.1], s: 0.68 }, gunner: { p: [5.2, 5.3], t: [8.2, 7.7], s: 0.68 }, blaze: { p: [3.2, 3.0], t: [0.6, 2.0], s: 0.52, f: -1 },
+    frost: { p: [8.0, 3.3], t: [9.7, 4.0], s: 0.55 }, toxic: { p: [7.6, 3.2], t: [9.1, 6.2], s: 0.5 }, thunder: { p: [8.0, 4.9], t: [9.8, 7.0], s: 0.6 },
     tank: { p: [5.0, 4.8], t: [9.5, 5.9], s: 0.62 }, shadow: { p: [7.5, 3.3], t: [9.2, 5.5], s: 0.5 }, plasma: { p: [2.9, 5.9], t: [1.9, 8.3], s: 0.68 },
     chaos: { p: [5.3, 5.6], t: [9.5, 8.3], s: 0.68 }, royal: { p: [7.0, 4.0], t: [8.2, 4.2], s: 0.5 }, crimson: { p: [4.3, 5.4], t: [5.5, 7.5], s: 0.62 },
-    sky: { p: [8.0, 3.7], t: [8.8, 2.5], s: 0.5 }, rogue: { p: [7.9, 4.0], t: [9.3, 5.7], s: 0.5 },
+    sky: { p: [7.6, 3.0], t: [9.0, 1.8], s: 0.55 }, medic: { p: [7.7, 2.8], t: [9.5, 1.5], s: 0.55 }, robin: { p: [4.6, 4.5], t: [9.6, 1.3], s: 0.6 }, rogue: { p: [7.9, 4.0], t: [9.3, 5.7], s: 0.5 },
   };
   // supplied artwork, animated: legs swing in turn, the free arm swings, the body leans toward where it aims, and a shot kicks it back
   function drawHero(ch, x, fy, w, o) {
@@ -335,7 +336,7 @@
     const art = heroArt(P.ch.id); if (!imgOk(art)) { P.flip = 1; P.rotA = 0; return; }
     const cfg = HERO_ART[P.ch.id] || { p: [7, 3.5], t: [9, 5.5], s: 0.5 }, w = P.r * 2.7, h = w * art.naturalHeight / art.naturalWidth;
     const sp = Math.max(1, P.speed), mvx = (P.vx || 0) / sp, moving = (P.mv || 0) > 0.12;
-    P.flip = enemies.length ? (Math.cos(P.aim) < 0 ? -1 : 1) : (moving && Math.abs(mvx) > 0.25 ? Math.sign(mvx) : (Math.cos(P.aim) < 0 ? -1 : 1));
+    P.flip = (cfg.f || 1) * (enemies.length ? (Math.cos(P.aim) < 0 ? -1 : 1) : (moving && Math.abs(mvx) > 0.25 ? Math.sign(mvx) : (Math.cos(P.aim) < 0 ? -1 : 1)));
     const la = P.flip > 0 ? P.aim : Math.PI - P.aim, phi = Math.atan2((cfg.t[1] - cfg.p[1]) * h, (cfg.t[0] - cfg.p[0]) * w);
     let d = la - phi; d = Math.atan2(Math.sin(d), Math.cos(d)); P.rotA = enemies.length ? clamp(d * 0.35, -0.32, 0.32) : 0;
   }
@@ -401,7 +402,8 @@
       else if (id === 'royal') P.dr += 0.1;
       else if (id === 'crimson') P.crit += 0.15;
       else if (id === 'sky') P.rico = 1;
-      else if (id === 'rogue') P.crit += 0.15; }
+      else if (id === 'rogue') P.crit += 0.15;
+      else if (id === 'medic') P.regenRoom = 0.12; }
     for (const u of PERM) { const l = permLevel(ch.id, u.id); if (l) u.f(P, l); }       // shop upgrades for this monkey
     P.hp = P.hpMax;
   }
@@ -1360,7 +1362,7 @@
     pickups = pickups.filter(p => !p.got);
 
     // room cleared
-    if (state === 'play' && !queue.length && !enemies.length) { state = 'clear'; clearT = 0; bannerT = 3; ebul = []; hazards = []; mines = []; P.hp = Math.min(P.hpMax, P.hp + P.hpMax * (bossRoom(run.room) ? 0.3 : 0.08));
+    if (state === 'play' && !queue.length && !enemies.length) { state = 'clear'; clearT = 0; bannerT = 3; ebul = []; hazards = []; mines = []; P.hp = Math.min(P.hpMax, P.hp + P.hpMax * (P.regenRoom || 0) + P.hpMax * (bossRoom(run.room) ? 0.3 : 0.08));
       { const bonus = Math.round((12 + run.room * 2.5) * (bossRoom(run.room) ? 5 : 1) * P.bmult); run.ban += bonus; save.ban += bonus; save.stats.coins += bonus; save.stats.rooms++; if (!P.hurtRoom) save.stats.flawless++; clearBonus = bonus; }
       persist(); tone(660, 0.3, 'triangle', 0.07, 400); }
     if (state === 'clear' && P.y < TOP + P.r + 12 && Math.abs(P.x - RW / 2) < 36) { persist(); makeOffer(); state = 'upgrade'; joy.on = false; joy.dx = joy.dy = 0; tone(440, 0.25, 'triangle', 0.06, 300); }
