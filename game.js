@@ -1,7 +1,7 @@
 // Monkeys vs Opps: clear rooms of Opps, pick one of three upgrades, beat a boss every 10 rooms. Stand still to shoot, move to dodge.
 // Drag anywhere with your thumb to move. Your monkey starts at the bottom, opps drop in from the top, and it auto-fires.
 (() => {
-  const VERSION = 'v53';
+  const VERSION = 'v55';
   const cv = document.getElementById('c'); let ctx = cv.getContext('2d'); const mainCtx = ctx;
   let W, H, S, AW, AH, dpr, hudY = 44, UIY = 0, UIB = 14;
   let RW = 0, RH = 0, camX = 0, camY = 0;                   // the room can be bigger than the screen; the camera follows you
@@ -138,10 +138,7 @@
     { tee: 'neon', mouth: 'flat', bg: '#c02ef0', cloth: '#1a1530', id: 'plasma',  name: 'Plasma Monkey',  short: 'Plasma',  role: 'Plasma',        weapon: 'plasma', cost: 16000, fur: '#8a909c', skin: '#d9b48a', acc: 'cyberPurple',  hp: 105, spd: 152, ability: 'nova',   passive: 'Plasma blasts are 25% wider', weak: 'Tight spread up close', blurb: 'Futuristic and elite. Bursts of energy that control the floor.' },
     { ring: 1, tee: 'punk', mouth: 'grin', bg: '#ee1a66', cloth: '#1a1418', id: 'chaos',   name: 'Chaos Monkey',   short: 'Chaos',   role: 'Mixed elements', weapon: 'chaos', cost: 25000, fur: '#8a3a22', skin: '#d9a070', acc: 'punkHair', hp: 110, spd: 156, ability: 'chaos',  passive: 'Every shot rolls a new element', weak: 'Unpredictable', blurb: 'Flashy and legendary. Fire, ice, poison, lightning, plasma. All at once.' },
     { tee: 'skull', mouth: 'smirk', bg: '#7fe0c8', cloth: '#7a2a2a', id: 'slash',   name: 'Slash Monkey',   short: 'Slash',   role: 'Blades',        weapon: 'blade',  cost: 3500,  fur: '#5a4636', skin: '#c9a27a', acc: 'scar',   hp: 130, spd: 172, ability: 'blink',  passive: 'Fast and tough in close combat', weak: 'Has to get close', blurb: 'A scarred street fighter with a combat knife.' },
-    { tee: 'collar', mouth: 'flat', ring: 1, bg: '#e8c99a', cloth: '#2a2a33', id: 'don',     name: 'Don Monkey',     short: 'Don',     role: 'Tommy gun',     weapon: 'tommy',  cost: 5000,  fur: '#7a5a3a', skin: '#d9b48a', acc: 'fedora', hp: 110, spd: 150, ability: 'frenzy', passive: 'Always has a cigar', weak: 'Messy aim', cigar: 1, blurb: 'Old-school boss. A cigar, a fedora and a Tommy gun.' },
-    { tee: 'stripes', held: 'gum', mouth: 'grin', ring: 1, bg: '#f7a8e8', cloth: '#ff4fd8', id: 'disco',   name: 'Disco Monkey',   short: 'Disco',   role: 'CDs',           weapon: 'cd',     cost: 4500,  fur: '#9b5de5', skin: '#f0c8ff', acc: 'phones', hp: 105, spd: 158, ability: 'nova',   passive: 'Discs bounce twice', weak: 'Slow discs', blurb: 'Spins records. Throws CDs that slice through crowds.' },
     { tee: 'plain', held: 'pick', mouth: 'smirk', bg: '#9ed3a0', cloth: '#3d6a30', id: 'robin',   name: 'Robin Monkey',   short: 'Robin',   role: 'Archery',       weapon: 'bow',    cost: 5500,  fur: '#4f7a3a', skin: '#d9c9a0', acc: 'hood',   hp: 100, spd: 162, ability: 'strike', passive: 'Arrows pierce twice', weak: 'Slow fire rate', blurb: 'A hooded hunter. Fast arrows punch through whole lines.' },
-    { tee: 'vest', mouth: 'grin', bg: '#f6c36a', cloth: '#e0a020', id: 'dyna',    name: 'Dyna Monkey',    short: 'Dyna',    role: 'Explosives',    weapon: 'nade',   cost: 7000,  fur: '#c4602d', skin: '#f0c8a0', acc: 'hardhat', hp: 115, spd: 148, ability: 'nova',  passive: 'Big blasts', weak: 'Fuse delay', blurb: 'Lobs lit dynamite. Everything nearby goes boom.' },
     { tee: 'plain', mouth: 'flat', bg: '#2a58c8', cloth: '#e8e6e0', id: 'royal',   name: 'Royal Monkey',   short: 'Royal',   role: 'Royal guard',   weapon: 'plasma', cost: 18000, fur: '#8a4a28', skin: '#e0b48a', acc: 'visor',  hp: 140, spd: 148, ability: 'shield', passive: '10% less damage taken', weak: 'Slower than the rest', blurb: 'Calm, armoured and golden. Takes hits like a king.' },
     { tee: 'cyber', mouth: 'flat', bg: '#d02030', cloth: '#15151c', id: 'crimson', name: 'Crimson Monkey', short: 'Crimson', role: 'Assault rifle', weapon: 'tommy',  cost: 6500,  fur: '#6a4430', skin: '#d9b48a', acc: 'cyberRed', hp: 105, spd: 156, ability: 'frenzy', passive: '+15% crit chance', weak: 'Messy aim', blurb: 'Red-lit special forces. Sprays a wall of bullets.' },
     { tee: 'plain', mouth: 'grin', bg: '#2f8cf0', cloth: '#2a4aa8', id: 'sky',     name: 'Sky Monkey',     short: 'Sky',     role: 'CDs',           weapon: 'cd',     cost: 7500,  fur: '#1d1d24', skin: '#d9a078', acc: 'phones', hp: 105, spd: 160, ability: 'nova',   passive: 'Discs bounce once more', weak: 'Slow to kill', blurb: 'Headphones on, thumbs up. Throws discs that bounce.' },
@@ -377,7 +374,7 @@
   };
 
   // ---------- state ----------
-  let state = 'title', sel = Math.min(save.sel, CHARS.length - 1);
+  let state = 'title', sel = Math.min(save.sel, CHARS.length - 1); if (!save.owned[CHARS[sel].id]) sel = 0;
   let run, P, enemies = [], pbul = [], ebul = [], pickups = [], fx = [], queue, spawnT, clearT, bannerT, shake, flash, msg;
   let offer = [], t0 = 0, roomT = 0, clearBonus = 0;
   let btns = [];
@@ -524,7 +521,7 @@
     if (kind === 'boss') {
       const bn = room / 10;
       const hp = 900 * (1 + 0.8 * (bn - 1)) * (1 + 0.07 * (room - 1));                  // beatable with a decent build, but still a real fight
-      e = { kind, boss: 1, bn, r: 52 * ESC, hp, max: hp, sp: 30, dmg: 20 + bn * 6, bdmg: 9 + bn * 3.5, val: 40 * bn, col: '#e84393', pt: 2, sum: 6 };
+      e = { kind, boss: 1, bn, r: 52 * ESC * 0.7, hp, max: hp, sp: 30, dmg: 20 + bn * 6, bdmg: 9 + bn * 3.5, val: 40 * bn, col: '#e84393', pt: 2, sum: 6 };
     } else {
       const T = TYPES[kind];
       e = { kind, r: T.r * ESC, hp: T.hp * hs, max: T.hp * hs, sp: T.sp, dmg: T.dmg * ds, bdmg: 6 * ds, val: T.val, col: T.col, cd: rand(1, 2), st: 0, stt: 0 };
@@ -555,7 +552,7 @@
     e.v = Math.floor(Math.random() * 3); e.ph = rand(0, 6.28); e.chillT = 0; e.pois = 0; e.poisT = 0; e.faceA = Math.PI / 2;
     if (e.boss) {                                                  // each boss has its own build
       const B = bossCfg(room);
-      e.bid = B.id; bossArt(B.id); e.id = B.ai; e.name = B.name; e.sub = B.sub; e.r = B.r * ESC; e.hp = e.max = e.max * B.hp; e.sp = B.sp; e.dmg *= B.dmg; e.bdmg *= B.dmg;
+      e.bid = B.id; bossArt(B.id); e.id = B.ai; e.name = B.name; e.sub = B.sub; e.r = B.r * ESC * 0.7; e.hp = e.max = e.max * B.hp; e.sp = B.sp; e.dmg *= B.dmg; e.bdmg *= B.dmg;
       e.mode = 'idle'; e.mt = 1.2; e.pat = 0; e.dx = 0; e.dy = 1; e.sa = 0; e.et = 0; e.phase = 1; e.intro = 1.9; e.sched = [];
     }
     e.x = x; e.y = y; if (!e.boss && walls.length) pushOut(e, e.r + 4);
