@@ -1,7 +1,7 @@
 // Monkeys vs Opps: clear rooms of Opps, pick one of three upgrades, beat a boss every 10 rooms. Stand still to shoot, move to dodge.
 // Drag anywhere with your thumb to move. Your monkey starts at the bottom, opps drop in from the top, and it auto-fires.
 (() => {
-  const VERSION = 'v67';
+  const VERSION = 'v68';
   const cv = document.getElementById('c'); let ctx = cv.getContext('2d'); const mainCtx = ctx;
   let W, H, S, AW, AH, dpr, hudY = 44, UIY = 0, UIB = 14;
   let RW = 0, RH = 0, camX = 0, camY = 0;                   // the room can be bigger than the screen; the camera follows you
@@ -307,13 +307,17 @@
   // where each character's weapon (or hand) sits in its artwork, in tenths of the picture: p = grip, t = tip/palm, s = where the legs start
   const HERO_W = 5.2;                                                    // sprite width in player radii
   const HERO_ART = {
-    volt: { p: [4.6, 5.0], t: [7.7, 8.1], s: 0.68 }, gunner: { p: [5.2, 5.3], t: [8.2, 7.7], s: 0.68 }, blaze: { p: [3.2, 3.0], t: [0.6, 2.0], s: 0.52, f: -1 },
+    volt: { p: [4.6, 5.0], t: [7.7, 8.1], s: 0.68 }, gunner: { p: [5.0, 5.6], t: [8.4, 7.4], s: 0.68, cr: 0.06 }, blaze: { p: [3.2, 3.0], t: [0.6, 2.0], s: 0.52, f: -1 },
     frost: { p: [8.0, 3.3], t: [9.7, 4.0], s: 0.55 }, toxic: { p: [3.5, 4.6], t: [0.5, 2.7], s: 0.55, f: -1 }, dj: { p: [8.0, 3.3], t: [9.6, 3.6], s: 0.6 }, sand: { p: [1.5, 2.0], t: [1.2, 1.4], s: 0.6, f: -1 }, gear: { p: [2.2, 3.6], t: [8.8, 1.4], s: 0.62 }, tide: { p: [1.5, 3.3], t: [0.8, 0.8], s: 0.6, f: -1 }, star: { p: [8.0, 3.8], t: [9.7, 3.4], s: 0.62 }, storm: { p: [7.5, 5.0], t: [9.3, 5.0], s: 0.6 }, leaf: { p: [3.0, 3.2], t: [1.2, 2.8], s: 0.6, f: -1 }, gravity: { p: [3.0, 3.2], t: [1.0, 2.9], s: 0.6, f: -1 }, slash: { p: [8.6, 2.6], t: [9.4, 0.8], s: 0.55 }, thunder: { p: [5.0, 6.5], t: [9.7, 8.0], s: 0.7 }, bling: { p: [2.2, 3.4], t: [1.8, 1.8], s: 0.52, f: -1 },
     tank: { p: [5.0, 4.8], t: [9.5, 5.9], s: 0.62 }, shadow: { p: [2.0, 5.7], t: [9.7, 8.6], s: 0.55 }, plasma: { p: [8.0, 5.0], t: [9.6, 0.4], s: 0.6 },
     chaos: { p: [5.3, 5.6], t: [9.5, 8.3], s: 0.68 }, royal: { p: [7.0, 4.0], t: [8.2, 4.2], s: 0.5 }, crimson: { p: [4.3, 5.4], t: [5.5, 7.5], s: 0.62 },
     sky: { p: [7.6, 3.0], t: [9.0, 1.8], s: 0.55 }, medic: { p: [7.7, 2.8], t: [9.5, 1.5], s: 0.55 }, robin: { p: [4.6, 4.5], t: [9.6, 1.3], s: 0.6 }, rogue: { p: [7.9, 4.0], t: [9.3, 5.7], s: 0.5 },
   };
   // supplied artwork, animated: legs swing in turn, the free arm swings, the body leans toward where it aims, and a shot kicks it back
+  function heroW(id) {                                                   // every character is drawn about the same height, however tall or wide its artwork is
+    const a = heroArt(id), base = P.r * HERO_W; if (!imgOk(a)) return base;
+    return Math.min(base * 1.5 * a.naturalWidth / a.naturalHeight, base * 1.4);
+  }
   const heroHead = {};
   function headX(id, art) {                                              // where the head sits across the picture (0..1), found once from the artwork
     if (heroHead[id] !== undefined) return heroHead[id];
@@ -335,7 +339,7 @@
     ctx.save(); ctx.translate(0, -h + hy); ctx.translate(-(o.kick || 0) * w * 0.02, 0); ctx.rotate(rot);                         // body + head, rotating about the hips
     const rows = hs + nh * 0.03, rh = hy + h * 0.03, aw = 0.27, a0 = 0.17, wside = cfg.t[0] > 5 ? 1 : -1;
     const px = (cfg.p[0] / 10 - 0.5) * w, py = cfg.p[1] / 10 * h - hy, tx = (cfg.t[0] / 10 - 0.5) * w, ty = cfg.t[1] / 10 * h - hy;       // grip and tip, hip-relative
-    const ang = Math.atan2(ty - py, tx - px), len = Math.hypot(tx - px, ty - py), cr = Math.max(h * 0.13, len * 0.2), arm = o.arm || 0, kk = o.kick || 0;
+    const ang = Math.atan2(ty - py, tx - px), len = Math.hypot(tx - px, ty - py), cr = cfg.cr ? h * cfg.cr : Math.max(h * 0.13, len * 0.2), arm = o.arm || 0, kk = o.kick || 0;
     const capsule = () => { ctx.beginPath(); ctx.save(); ctx.translate(px, py); ctx.rotate(ang); ctx.rect(-cr * 1.1, -cr, len + cr * 1.6, cr * 2); ctx.restore(); };
     const free = -wside, fsw = Math.sin(t + (free > 0 ? 0 : Math.PI)) * mv * 0.22 + Math.sin((o.idle || 0) * 2 + free) * 0.015;
     ctx.save(); ctx.beginPath(); ctx.rect(-w, -h, 2 * w, h * 2);                                                                 // body, head and free arm; the gun piece is cut out
@@ -352,7 +356,7 @@
   }
   function heroPose() {                                                  // which way the figure faces and how far its body turns toward the target
     const art = heroArt(P.ch.id); if (!imgOk(art)) { P.flip = 1; P.rotA = 0; return; }
-    const cfg = HERO_ART[P.ch.id] || { p: [7, 3.5], t: [9, 5.5], s: 0.5 }, w = P.r * HERO_W, h = w * art.naturalHeight / art.naturalWidth;
+    const cfg = HERO_ART[P.ch.id] || { p: [7, 3.5], t: [9, 5.5], s: 0.5 }, w = heroW(P.ch.id), h = w * art.naturalHeight / art.naturalWidth;
     const sp = Math.max(1, P.speed), mvx = (P.vx || 0) / sp, moving = (P.mv || 0) > 0.12;
     P.flip = (cfg.f || 1) * (enemies.length ? (Math.cos(P.aim) < 0 ? -1 : 1) : (moving && Math.abs(mvx) > 0.25 ? Math.sign(mvx) : (Math.cos(P.aim) < 0 ? -1 : 1)));
     const la = P.flip > 0 ? P.aim : Math.PI - P.aim, phi = Math.atan2((cfg.t[1] - cfg.p[1]) * h, (cfg.t[0] - cfg.p[0]) * w);
@@ -361,7 +365,7 @@
   function heroMuzzle(a) {                                               // the tip of the weapon (or the palm) in the world, where shots come from
     const art = heroArt(P.ch.id), cfg = HERO_ART[P.ch.id];
     if (!imgOk(art) || !cfg) return { x: P.x + Math.cos(a) * 18 * ESC * 2, y: P.y + Math.sin(a) * 18 * ESC * 2 };
-    const w = P.r * HERO_W, h = w * art.naturalHeight / art.naturalWidth, hipY = -h + cfg.s * h, gx = (cfg.p[0] / 10 - 0.5) * w, gy = (cfg.p[1] / 10 - 1) * h - hipY, rx = (cfg.t[0] / 10 - 0.5) * w - gx, ry = (cfg.t[1] / 10 - 1) * h - hipY - gy, arm = P.armA || 0;
+    const w = heroW(P.ch.id), h = w * art.naturalHeight / art.naturalWidth, hipY = -h + cfg.s * h, gx = (cfg.p[0] / 10 - 0.5) * w, gy = (cfg.p[1] / 10 - 1) * h - hipY, rx = (cfg.t[0] / 10 - 0.5) * w - gx, ry = (cfg.t[1] / 10 - 1) * h - hipY - gy, arm = P.armA || 0;
     const c = Math.cos(arm), sn = Math.sin(arm), vx = gx + rx * c - ry * sn, vy = gy + rx * sn + ry * c, fl = P.flip || 1;
     return { x: P.x + fl * vx, y: P.y + P.r * 2.6 + hipY + vy };
   }
@@ -2607,7 +2611,7 @@
       const art = heroArt(P.ch.id);
       if (imgOk(art)) {                                                  // the supplied character artwork, animated
         const sp = Math.max(1, P.speed);
-        drawHero(P.ch, P.x, P.y + P.r * 2.6, P.r * HERO_W, { walk: (P.walk || 0), mv: P.mv || 0, lx: (P.vx || 0) / sp, ly: (P.vy || 0) / sp, flip: P.flip || 1, rot: P.rotA || 0, arm: P.armA || 0, tilt: P.tilt || 0, head: P.headA || 0, kick: P.kick || 0, idle: performance.now() / 1000 });
+        drawHero(P.ch, P.x, P.y + P.r * 2.6, heroW(P.ch.id), { walk: (P.walk || 0), mv: P.mv || 0, lx: (P.vx || 0) / sp, ly: (P.vy || 0) / sp, flip: P.flip || 1, rot: P.rotA || 0, arm: P.armA || 0, tilt: P.tilt || 0, head: P.headA || 0, kick: P.kick || 0, idle: performance.now() / 1000 });
       } else {
       ctx.save(); ctx.translate(P.x, P.y + P.r * 2.6); ctx.rotate(clamp((P.vx || 0) / Math.max(1, P.speed), -1, 1) * 0.1); ctx.translate(0, -P.r * 2.6); ctx.scale(1.3, 1.3);
       drawApe(ctx, 0, 0, P.r, P.ch, P.aim, 0, P.walk || 0, P.mv || 0, (P.sl || 0) > 0 ? ((P.sl / 0.14) * 1.5 - 0.75) * -1 : 0, false, P.face);
