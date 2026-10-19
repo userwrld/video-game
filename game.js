@@ -1,7 +1,7 @@
 // Monkeys vs Opps: clear rooms of Opps, pick one of three upgrades, beat a boss every 10 rooms. Stand still to shoot, move to dodge.
 // Drag anywhere with your thumb to move. Your monkey starts at the bottom, opps drop in from the top, and it auto-fires.
 (() => {
-  const VERSION = 'v68';
+  const VERSION = 'v69';
   const cv = document.getElementById('c'); let ctx = cv.getContext('2d'); const mainCtx = ctx;
   let W, H, S, AW, AH, dpr, hudY = 44, UIY = 0, UIB = 14;
   let RW = 0, RH = 0, camX = 0, camY = 0;                   // the room can be bigger than the screen; the camera follows you
@@ -318,8 +318,10 @@
     const a = heroArt(id), base = P.r * HERO_W; if (!imgOk(a)) return base;
     return Math.min(base * 1.5 * a.naturalWidth / a.naturalHeight, base * 1.4);
   }
+  const HEAD_X = { blaze: 0.6, frost: 0.46, medic: 0.47, robin: 0.5, thunder: 0.5, storm: 0.57, leaf: 0.45, gravity: 0.72, dj: 0.36, sand: 0.62, gear: 0.55, tide: 0.52, star: 0.52, plasma: 0.47, shadow: 0.72, toxic: 0.72, sky: 0.5, bling: 0.62, slash: 0.55, gunner: 0.5 };
   const heroHead = {};
   function headX(id, art) {                                              // where the head sits across the picture (0..1), found once from the artwork
+    if (HEAD_X[id] !== undefined) return HEAD_X[id];
     if (heroHead[id] !== undefined) return heroHead[id];
     let hx = 0.5;
     try { const c = document.createElement('canvas'), n = 64; c.width = n; c.height = n; const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(art, 0, 0, n, n); const d = g.getImageData(0, 0, n, Math.round(n * 0.2)).data; let sx = 0, sw = 0; for (let y = 0; y < Math.round(n * 0.2); y++) for (let x = 0; x < n; x++) if (d[(y * n + x) * 4 + 3] > 128) { sx += x; sw++; } if (sw > 20) hx = sx / sw / n; } catch (e) {}
@@ -329,7 +331,7 @@
     const art = heroArt(ch.id); if (!imgOk(art)) return false;
     const cfg = HERO_ART[ch.id] || { p: [7, 3.5], t: [9, 5.5], s: 0.5 }, nw = art.naturalWidth, nh = art.naturalHeight, h = w * nh / nw, sp = cfg.s, hy = h * sp, hs = nh * sp, t = o.walk || 0, mv = o.mv || 0;
     const bob = Math.abs(Math.sin(t)) * h * 0.025 * mv + (o.idle ? Math.sin(o.idle * 2.2) * h * 0.006 : 0), lean = Math.sin(t) * 0.015 * mv, sy = 1 + clamp(o.ly || 0, -1, 1) * 0.035 * mv;
-    const rot = -Math.sin(t) * 0.02 * mv + (cfg.f || 1) * (o.tilt || 0), hxn = headX(ch.id, art), hcx = (hxn - 0.5) * w, hcy = 0.13 * h - hy, hrx = 0.21 * w, hry = 0.15 * h, hpy = 0.25 * h - hy;
+    const rot = -Math.sin(t) * 0.02 * mv + (cfg.f || 1) * (o.tilt || 0), hxn = headX(ch.id, art), hcx = (hxn - 0.5) * w, hcy = 0.125 * h - hy, hrx = 0.24 * w, hry = 0.17 * h, hpy = 0.25 * h - hy;
     ctx.save(); ctx.translate(x, fy - bob); ctx.rotate(lean); ctx.scale(o.flip < 0 ? -1 : 1, sy);
     for (const sg of [-1, 1]) {                                                               // legs swing from the hips
       const sw = Math.sin(t + (sg > 0 ? Math.PI : 0)) * mv;
