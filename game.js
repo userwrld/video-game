@@ -1,7 +1,7 @@
-// Monkeys vs Opps: clear rooms of Opps, pick one of three upgrades, beat a boss every 15 rooms. Stand still to shoot, move to dodge.
+// Monkeys vs Opps: clear rooms of Opps, pick one of three upgrades, beat a boss every 10 rooms. Stand still to shoot, move to dodge.
 // Drag anywhere with your thumb to move. Your monkey starts at the bottom, opps drop in from the top, and it auto-fires.
 (() => {
-  const VERSION = 'v27';
+  const VERSION = 'v28';
   const cv = document.getElementById('c'); let ctx = cv.getContext('2d'); const mainCtx = ctx;
   let W, H, S, AW, AH, dpr, hudY = 44, UIY = 0, UIB = 14;
   let RW = 0, RH = 0, camX = 0, camY = 0;                   // the room can be bigger than the screen; the camera follows you
@@ -285,7 +285,7 @@
     { id: 'titan',    name: 'TITAN OPP',     sub: 'Arena-wide shockwaves and a rage form.',              look: 'kingBull',    r: 72, hp: 1.5,  sp: 24, dmg: 1.3 },
     { id: 'overlord', name: 'OPP OVERLORD',  sub: 'Every weapon, every trick.',                          look: 'kingLion',    r: 60, hp: 1.4,  sp: 36, dmg: 1.2 },
   ];
-  const bossCfg = room => BOSSES[((room / 15 - 1) % 5 + 5) % 5];
+  const bossCfg = room => BOSSES[((room / 10 - 1) % 5 + 5) % 5];
   // ---------- opps ----------
   const TYPES = {
     runt:    { r: 10, hp: 14,  sp: 82,  dmg: 6,  val: 1, col: '#ff6b6b' },
@@ -364,7 +364,7 @@
     for (const u of UPG) { const n = sn.pen && f(sn.pen[u.id]); if (n) pen[u.id] = clamp(n, 0.01, 1); }
     startRoom(); state = 'play';
   }
-  function bossRoom(n) { return n % 15 === 0; }
+  function bossRoom(n) { return n % 10 === 0; }
   // ---------- the room: bigger than the screen, so the camera follows you and you explore ----------
   const roomWide = () => RW > AW + 40 || RH > AH + 40;
   function worldInit(room) {
@@ -434,7 +434,7 @@
     const room = run.room, hs = 1 + 0.17 * (room - 1), ds = 1 + 0.05 * (room - 1);
     let e;
     if (kind === 'boss') {
-      const bn = room / 15;
+      const bn = room / 10;
       const hp = 1100 * (1 + 1.0 * (bn - 1)) * (1 + 0.1 * (room - 1));
       e = { kind, boss: 1, bn, r: 52, hp, max: hp, sp: 30, dmg: 22 + bn * 7, bdmg: 11 + bn * 4, val: 40 * bn, col: '#e84393', pt: 2, sum: 6 };
     } else {
@@ -2337,9 +2337,9 @@
   }
   function drawHud() {
     const y = hudY, now = performance.now(), boss = enemies.find(e => e.boss && !e.clone);
-    const stage = Math.floor((run.room - 1) / 15) + 1, rin = ((run.room - 1) % 15) + 1;
+    const stage = Math.floor((run.room - 1) / 10) + 1, rin = ((run.room - 1) % 10) + 1;
     ctx.font = '800 15px "Courier New", monospace'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; if ('letterSpacing' in ctx) ctx.letterSpacing = '1px';
-    ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillText('Stage ' + stage + ' - ' + rin + '/15', 17, y + 1.5); ctx.fillStyle = '#eef5f0'; ctx.fillText('Stage ' + stage + ' - ' + rin + '/15', 16, y);
+    ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillText('Stage ' + stage + ' - ' + rin + '/10', 17, y + 1.5); ctx.fillStyle = '#eef5f0'; ctx.fillText('Stage ' + stage + ' - ' + rin + '/10', 16, y);
     if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
     slate(AW - 168, y - 11, 104, 22, 6); coinArt(AW - 154, y, 8); txt(save.ban.toLocaleString(), AW - 72, y + 1, 12, '#ffe27a', 'right');
     if (state === 'play' || state === 'clear') {                                                  // pause button
