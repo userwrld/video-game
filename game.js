@@ -1,7 +1,7 @@
 // Monkeys vs Opps: clear rooms of Opps, pick one of three upgrades, beat a boss every 15 rooms. Stand still to shoot, move to dodge.
 // Drag anywhere with your thumb to move. Your monkey starts at the bottom, opps drop in from the top, and it auto-fires.
 (() => {
-  const VERSION = 'v19';
+  const VERSION = 'v20';
   const cv = document.getElementById('c'); let ctx = cv.getContext('2d'); const mainCtx = ctx;
   let W, H, S, AW, AH, dpr, hudY = 44, UIY = 0, UIB = 14;
   let RW = 0, RH = 0, camX = 0, camY = 0;                   // the room can be bigger than the screen; the camera follows you
@@ -519,16 +519,17 @@
     }
     return false;
   }
-  function pushOut(o, rad) {
+  function pushOut(o, rad, tall) {
     for (const w of walls) {
-      const cx = clamp(o.x, w.x, w.x + w.w), cy = clamp(o.y, w.y, w.y + w.h), dx = o.x - cx, dy = o.y - cy, d = Math.hypot(dx, dy);
+      const up = tall ? (w.k && w.k !== 'crate' ? 30 : 14) : 0, wy = w.y - up, wh = w.h + up;    // the player also bumps the drawn top of an object, so you can't walk into it from behind
+      const cx = clamp(o.x, w.x, w.x + w.w), cy = clamp(o.y, wy, wy + wh), dx = o.x - cx, dy = o.y - cy, d = Math.hypot(dx, dy);
       if (d < rad) {
         if (d > 0.0001) { o.x = cx + dx / d * rad; o.y = cy + dy / d * rad; }
-        else { const l = o.x - w.x, r = w.x + w.w - o.x, t = o.y - w.y, b = w.y + w.h - o.y, m = Math.min(l, r, t, b); if (m === l) o.x = w.x - rad; else if (m === r) o.x = w.x + w.w + rad; else if (m === t) o.y = w.y - rad; else o.y = w.y + w.h + rad; }
+        else { const l = o.x - w.x, r = w.x + w.w - o.x, t = o.y - wy, b = wy + wh - o.y, m = Math.min(l, r, t, b); if (m === l) o.x = w.x - rad; else if (m === r) o.x = w.x + w.w + rad; else if (m === t) o.y = wy - rad; else o.y = wy + wh + rad; }
       }
     }
   }
-  function moveBy(o, dx, dy, rad) { o.x += dx; pushOut(o, rad); o.y += dy; pushOut(o, rad); }
+  function moveBy(o, dx, dy, rad) { const t = o === P; o.x += dx; pushOut(o, rad, t); o.y += dy; pushOut(o, rad, t); }
   function inWall(x, y, pad = 0) { for (const w of walls) if (x > w.x - pad && x < w.x + w.w + pad && y > w.y - pad && y < w.y + w.h + pad) return w; return null; }
   function rayT(x1, y1, x2, y2) {                                    // 0..1 along the segment where it first meets a wall, or 1
     let best = 1; rayW = null; const dx = x2 - x1, dy = y2 - y1;
