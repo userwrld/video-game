@@ -1,7 +1,7 @@
 // Monkeys vs Opps: clear rooms of Opps, pick one of three upgrades, beat a boss every 10 rooms. Stand still to shoot, move to dodge.
 // Drag anywhere with your thumb to move. Your monkey starts at the bottom, opps drop in from the top, and it auto-fires.
 (() => {
-  const VERSION = 'v28';
+  const VERSION = 'v29';
   const cv = document.getElementById('c'); let ctx = cv.getContext('2d'); const mainCtx = ctx;
   let W, H, S, AW, AH, dpr, hudY = 44, UIY = 0, UIB = 14;
   let RW = 0, RH = 0, camX = 0, camY = 0;                   // the room can be bigger than the screen; the camera follows you
@@ -1160,6 +1160,7 @@
     updatePower(dt); updateZones(dt); updateMines(dt); if (state === 'play') updateHazards(dt);
     for (const w of walls) if (w.flash > 0) w.flash -= dt;
     const tg = nearest();
+    if (!tg) { let nb = null, nd = 1e9; for (const e of enemies) { if (e.spawn > 0) continue; const d = Math.hypot(e.x - P.x, e.y - P.y); if (d < nd) { nd = d; nb = e; } } if (nb) P.aim = Math.atan2(nb.y - P.y, nb.x - P.x); }   // out of range or behind cover: still point at the closest opp
     if (tg) {
       P.aim = Math.atan2(tg.y - P.y, tg.x - P.x);
       if (P.ch.weapon === 'flame') {
