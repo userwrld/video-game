@@ -1,7 +1,7 @@
 // Monkeys vs Opps: clear rooms of Opps, pick one of three upgrades, beat a boss every 10 rooms. Stand still to shoot, move to dodge.
 // Drag anywhere with your thumb to move. Your monkey starts at the bottom, opps drop in from the top, and it auto-fires.
 (() => {
-  const VERSION = 'v35';
+  const VERSION = 'v36';
   const cv = document.getElementById('c'); let ctx = cv.getContext('2d'); const mainCtx = ctx;
   let W, H, S, AW, AH, dpr, hudY = 44, UIY = 0, UIB = 14;
   let RW = 0, RH = 0, camX = 0, camY = 0;                   // the room can be bigger than the screen; the camera follows you
@@ -1441,17 +1441,17 @@
     if (!bust) shadow(0, r * 2.7, r * 1.1, r * 0.32);
     // legs: swing while moving, planted when still
     if (!bust) for (const sx of [-1, 1]) {
-      const sw = Math.sin(walk + (sx > 0 ? Math.PI : 0)) * mv, hipX = sx * r * 0.42, hipY = r * 1.75;
+      const sw = Math.sin(walk + (sx > 0 ? Math.PI : 0)) * mv, hipX = sx * r * 0.34, hipY = r * 1.75;
       const kx = hipX + sx * r * 0.08, ky = hipY + r * 0.45, fx = hipX + sw * r * 0.2, fy = r * 2.55 - Math.max(0, sw) * r * 0.2;
       sv.lineCap = 'round'; sv.strokeStyle = INK; sv.lineWidth = r * 0.62;
       sv.beginPath(); sv.moveTo(hipX, hipY); sv.lineTo(kx, ky); sv.lineTo(fx, fy); sv.stroke();
       sv.strokeStyle = pants; sv.lineWidth = r * 0.46; sv.beginPath(); sv.moveTo(hipX, hipY); sv.lineTo(kx, ky); sv.lineTo(fx, fy); sv.stroke();
       ball(fx + sx * r * 0.08, fy + r * 0.05, r * 0.34, skin, 1.2, 0.7);                // foot
     }
-    if (!bust) ball(0, chestY + r * 0.35, r * 0.78, pants, 1, 0.85, -0.3);                                  // hips
+    if (!bust) ball(0, chestY + r * 0.35, r * 0.64, pants, 1, 0.9, -0.3);                                  // hips
     // back arm swings at the side when it isn't holding anything
     const arm = (sx, hx, hy) => {
-      const shx = sx * r * 0.82, shy = chestY - r * 0.1;
+      const shx = sx * r * 0.68, shy = chestY - r * 0.1;
       sv.lineCap = 'round'; sv.strokeStyle = INK; sv.lineWidth = r * 0.56; sv.beginPath(); sv.moveTo(shx, shy); sv.lineTo(hx, hy); sv.stroke();
       sv.strokeStyle = cloth; sv.lineWidth = r * 0.4; sv.beginPath(); sv.moveTo(shx, shy); sv.lineTo(hx, hy); sv.stroke();
       ball(hx, hy, r * 0.27, skin);
@@ -1459,11 +1459,11 @@
     const ca = hasAim ? Math.cos(aim) : 0, sa = hasAim ? Math.sin(aim) : -1;
     const grip = d => [ca * d, chestY + sa * d];                                            // points along the aim line from the chest
     const gripL = grip(r * 0.7), gripR = grip(r * 1.3);
-    if (!bust && !(hasAim && w !== 'laser')) arm(-1, -r * 1.0 + Math.sin(walk) * r * 0.3 * mv, chestY + r * 0.85);
-    ball(0, chestY, r * 0.95, cloth, 1.12, 0.95, -0.28);                                // torso in the monkey's outfit
+    if (!bust && !(hasAim && w !== 'laser')) arm(-1, -r * 0.85 + Math.sin(walk) * r * 0.3 * mv, chestY + r * 0.85);
+    ball(0, chestY, r * 0.95, cloth, 0.84, 1.0, -0.28);                                // torso in the monkey's outfit
     sv.fillStyle = skin; sv.beginPath(); sv.moveTo(-r * 0.3, chestY - r * 0.82); sv.lineTo(r * 0.3, chestY - r * 0.82); sv.lineTo(0, chestY - r * 0.3); sv.closePath(); sv.fill(); sv.strokeStyle = INK; sv.lineWidth = Math.max(1, r * 0.06); sv.stroke();
     { const tee = hasAim && (face != null ? Math.sin(face) : sa) < -0.3 && !bust ? 'plain' : (ch.tee || 'plain'), cy2 = chestY + r * 0.12;
-      sv.save(); sv.beginPath(); sv.ellipse(0, chestY, r * 1.06, r * 0.9, 0, 0, 6.28); sv.clip();
+      sv.save(); sv.beginPath(); sv.ellipse(0, chestY, r * 0.9, r * 0.92, 0, 0, 6.28); sv.clip();
       if (tee === 'stripes') { sv.fillStyle = 'rgba(255,255,255,.5)'; for (let i = 0; i < 4; i++) sv.fillRect(-r * 1.2, chestY - r * 0.1 + i * r * 0.26, r * 2.4, r * 0.12); }
       else if (tee === 'skull') { sv.fillStyle = '#f2efe6'; sv.beginPath(); sv.arc(0, cy2 + r * 0.05, r * 0.26, 0, 6.28); sv.fill(); sv.fillRect(-r * 0.14, cy2 + r * 0.2, r * 0.28, r * 0.16); sv.fillStyle = cloth; sv.beginPath(); sv.arc(-r * 0.1, cy2, r * 0.06, 0, 6.28); sv.arc(r * 0.1, cy2, r * 0.06, 0, 6.28); sv.fill(); }
       else if (tee === 'flag') { sv.fillStyle = '#e0e6f2'; sv.fillRect(-r * 0.5, cy2 - r * 0.2, r, r * 0.55); sv.fillStyle = '#c0392b'; for (let i = 0; i < 3; i++) sv.fillRect(-r * 0.5, cy2 - r * 0.2 + i * r * 0.22, r, r * 0.1); sv.fillStyle = '#2a3f8f'; sv.fillRect(-r * 0.5, cy2 - r * 0.2, r * 0.4, r * 0.3); }
@@ -1510,7 +1510,7 @@
       sv.restore();
       arm(1, gripL[0], gripL[1]);                                                          // trigger hand
       if (two) arm(-1, gripR[0], gripR[1]);                                                // second hand steadies it
-    } else if (!bust && hasAim && w === 'laser') arm(1, r * 1.0 - Math.sin(walk) * r * 0.3 * mv, chestY + r * 0.85);
+    } else if (!bust && hasAim && w === 'laser') arm(1, r * 0.85 - Math.sin(walk) * r * 0.3 * mv, chestY + r * 0.85);
     // head
     sv.save(); sv.translate(0, 0);
     // face: flat-coloured ape with a heavy brow, sleepy sunken eyes, a long muzzle and big lips
