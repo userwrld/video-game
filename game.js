@@ -1,7 +1,7 @@
 // Monkeys vs Opps: clear rooms of Opps, pick one of three upgrades, beat a boss every 10 rooms. Stand still to shoot, move to dodge.
 // Drag anywhere with your thumb to move. Your monkey starts at the bottom, opps drop in from the top, and it auto-fires.
 (() => {
-  const VERSION = 'v39';
+  const VERSION = 'v40';
   const cv = document.getElementById('c'); let ctx = cv.getContext('2d'); const mainCtx = ctx;
   let W, H, S, AW, AH, dpr, hudY = 44, UIY = 0, UIB = 14;
   let RW = 0, RH = 0, camX = 0, camY = 0;                   // the room can be bigger than the screen; the camera follows you
@@ -290,8 +290,9 @@
     { id: 'chain',   ai: 'titan',    name: 'CHAINBREAKER',  sub: 'Arena-wide shockwaves and a rage form.',               look: 'b_chain',   r: 72, hp: 1.5,  sp: 24, dmg: 1.3 },
     { id: 'king',    ai: 'overlord', name: 'THE KONG KING', sub: 'Every weapon, every trick. The final crown.',          look: 'b_king',    r: 62, hp: 1.6,  sp: 36, dmg: 1.3 },
   ];
+  const BOSS_SPRITES = { bandit: 1 };                                    // bosses drawn from the supplied artwork (cut-outs in art/)
   const bossArtC = {};
-  function bossArt(id) { if (!bossArtC[id]) { const im = new Image(); im.src = 'art/boss_' + id + '.jpg'; bossArtC[id] = im; } return bossArtC[id]; }
+  function bossArt(id) { if (!BOSS_SPRITES[id]) return null; if (!bossArtC[id]) { const im = new Image(); im.src = 'art/boss_' + id + '.png'; bossArtC[id] = im; } return bossArtC[id]; }
   const bossCfg = room => BOSSES[((room / 10 - 1) % BOSSES.length + BOSSES.length) % BOSSES.length];
   // ---------- opps ----------
   const TYPES = {
@@ -474,7 +475,7 @@
     e.v = Math.floor(Math.random() * 3); e.ph = rand(0, 6.28); e.chillT = 0; e.pois = 0; e.poisT = 0; e.faceA = Math.PI / 2;
     if (e.boss) {                                                  // each boss has its own build
       const B = bossCfg(room);
-      bossArt(B.id); e.id = B.ai; e.name = B.name; e.sub = B.sub; e.r = B.r; e.hp = e.max = e.max * B.hp; e.sp = B.sp; e.dmg *= B.dmg; e.bdmg *= B.dmg;
+      e.bid = B.id; bossArt(B.id); e.id = B.ai; e.name = B.name; e.sub = B.sub; e.r = B.r; e.hp = e.max = e.max * B.hp; e.sp = B.sp; e.dmg *= B.dmg; e.bdmg *= B.dmg;
       e.mode = 'idle'; e.mt = 1.2; e.pat = 0; e.dx = 0; e.dy = 1; e.sa = 0; e.et = 0; e.phase = 1; e.intro = 1.9; e.sched = [];
     }
     e.x = x; e.y = y; if (!e.boss && walls.length) pushOut(e, e.r + 4);
@@ -1709,9 +1710,15 @@
     if (e.clone) ctx.globalAlpha = 0.6;
     if (!flying) ctx.translate(0, -r * 0.4);                           // head sits above a full body
     const col = (BASE[e.look] || ['#e84393'])[e.v % (BASE[e.look] ? BASE[e.look].length : 1)];
-    if (!flying) oppBody(e, r, col);
-    beast(e, r, col);
-    oppOutfit(e, r); oppMutation(e, r); oppWeapon(e, r);
+    const art = e.boss && !e.clone ? bossArt(e.bid) : null;
+    if (art && art.complete && art.naturalWidth) {                      // supplied artwork instead of the drawn body
+      const h = r * 4.5, w = h * art.naturalWidth / art.naturalHeight, sway = Math.sin(e.ph) * 0.03;
+      ctx.save(); ctx.translate(0, r * 2.0); ctx.rotate(sway); if (P.x < e.x) ctx.scale(-1, 1); ctx.drawImage(art, -w / 2, -h, w, h); ctx.restore();
+    } else {
+      if (!flying) oppBody(e, r, col);
+      beast(e, r, col);
+      oppOutfit(e, r); oppMutation(e, r); oppWeapon(e, r);
+    }
     if (e.shield) {                                                    // riot shield on the side facing you
       ctx.save(); ctx.translate(0, r * 0.4); ctx.rotate(e.faceA);
       const sg = ctx.createLinearGradient(r, 0, r * 1.5, 0); sg.addColorStop(0, '#dfe5f2'); sg.addColorStop(1, '#6a7490');
@@ -2540,10 +2547,6 @@
         const k = Math.min(1, ib.intro / 0.3, (1.9 - ib.intro) / 0.3), bh = (AH * 0.16) * Math.max(0, k);
         ctx.fillStyle = '#000'; ctx.fillRect(0, 0, AW, bh + hudY * 0.4); ctx.fillRect(0, AH - bh, AW, bh);
         const vg2 = ctx.createRadialGradient(AW / 2, AH * 0.4, 20, AW / 2, AH * 0.4, AH * 0.7); vg2.addColorStop(0, 'rgba(232,67,147,0)'); vg2.addColorStop(1, `rgba(232,67,147,${0.25 * k})`); ctx.fillStyle = vg2; ctx.fillRect(0, 0, AW, AH);
-        { const B = BOSSES.find(x => x.name === ib.name), im = B && bossArt(B.id);                  // portrait card slides in during the introduction
-          if (im && im.complete && im.naturalWidth) { const cw = Math.min(170, AW * 0.46), ch2 = cw * im.naturalHeight / im.naturalWidth, cx2 = AW / 2 - cw / 2, cy2 = AH * 0.5 - ch2 * 0.55;
-            ctx.save(); ctx.globalAlpha = Math.min(1, k * 1.3); ctx.translate(AW / 2, cy2 + ch2 / 2); ctx.rotate((1 - Math.min(1, k)) * -0.1); ctx.translate(-AW / 2, -(cy2 + ch2 / 2));
-            ctx.shadowColor = 'rgba(0,0,0,.6)'; ctx.shadowBlur = 16; rr(cx2, cy2, cw, ch2, 12); ctx.fillStyle = '#000'; ctx.fill(); ctx.shadowBlur = 0; ctx.save(); rr(cx2, cy2, cw, ch2, 12); ctx.clip(); ctx.drawImage(im, cx2, cy2, cw, ch2); ctx.restore(); ctx.strokeStyle = '#e8c872'; ctx.lineWidth = 2; rr(cx2, cy2, cw, ch2, 12); ctx.stroke(); ctx.restore(); } }
         ctx.globalAlpha = Math.min(1, k * 1.2); goldTxt(ib.name, AW / 2, AH - bh * 0.62, Math.min(34, AW * 0.09), 3); txt(ib.sub, AW / 2, AH - bh * 0.25, 11, '#e8d9b0'); ctx.globalAlpha = 1;
       }
     }
