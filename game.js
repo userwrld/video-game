@@ -1,7 +1,7 @@
 // Monkeys vs Opps: clear rooms of Opps, pick one of three upgrades, beat a boss every 10 rooms. Stand still to shoot, move to dodge.
 // Drag anywhere with your thumb to move. Your monkey starts at the bottom, opps drop in from the top, and it auto-fires.
 (() => {
-  const VERSION = 'v69';
+  const VERSION = 'v70';
   const cv = document.getElementById('c'); let ctx = cv.getContext('2d'); const mainCtx = ctx;
   let W, H, S, AW, AH, dpr, hudY = 44, UIY = 0, UIB = 14;
   let RW = 0, RH = 0, camX = 0, camY = 0;                   // the room can be bigger than the screen; the camera follows you
@@ -307,7 +307,7 @@
   // where each character's weapon (or hand) sits in its artwork, in tenths of the picture: p = grip, t = tip/palm, s = where the legs start
   const HERO_W = 5.2;                                                    // sprite width in player radii
   const HERO_ART = {
-    volt: { p: [4.6, 5.0], t: [7.7, 8.1], s: 0.68 }, gunner: { p: [5.0, 5.6], t: [8.4, 7.4], s: 0.68, cr: 0.06 }, blaze: { p: [3.2, 3.0], t: [0.6, 2.0], s: 0.52, f: -1 },
+    volt: { p: [4.6, 5.0], t: [7.7, 8.1], s: 0.68 }, gunner: { p: [2.6, 4.2], t: [6.9, 7.5], s: 0.68, cr: 0.045 }, blaze: { p: [3.2, 3.0], t: [0.6, 2.0], s: 0.52, f: -1 },
     frost: { p: [8.0, 3.3], t: [9.7, 4.0], s: 0.55 }, toxic: { p: [3.5, 4.6], t: [0.5, 2.7], s: 0.55, f: -1 }, dj: { p: [8.0, 3.3], t: [9.6, 3.6], s: 0.6 }, sand: { p: [1.5, 2.0], t: [1.2, 1.4], s: 0.6, f: -1 }, gear: { p: [2.2, 3.6], t: [8.8, 1.4], s: 0.62 }, tide: { p: [1.5, 3.3], t: [0.8, 0.8], s: 0.6, f: -1 }, star: { p: [8.0, 3.8], t: [9.7, 3.4], s: 0.62 }, storm: { p: [7.5, 5.0], t: [9.3, 5.0], s: 0.6 }, leaf: { p: [3.0, 3.2], t: [1.2, 2.8], s: 0.6, f: -1 }, gravity: { p: [3.0, 3.2], t: [1.0, 2.9], s: 0.6, f: -1 }, slash: { p: [8.6, 2.6], t: [9.4, 0.8], s: 0.55 }, thunder: { p: [5.0, 6.5], t: [9.7, 8.0], s: 0.7 }, bling: { p: [2.2, 3.4], t: [1.8, 1.8], s: 0.52, f: -1 },
     tank: { p: [5.0, 4.8], t: [9.5, 5.9], s: 0.62 }, shadow: { p: [2.0, 5.7], t: [9.7, 8.6], s: 0.55 }, plasma: { p: [8.0, 5.0], t: [9.6, 0.4], s: 0.6 },
     chaos: { p: [5.3, 5.6], t: [9.5, 8.3], s: 0.68 }, royal: { p: [7.0, 4.0], t: [8.2, 4.2], s: 0.5 }, crimson: { p: [4.3, 5.4], t: [5.5, 7.5], s: 0.62 },
@@ -796,7 +796,7 @@
     if (e.dead) return; e.dead = true; e.hp = Math.min(e.hp, 0);
     burst(e.x, e.y, e.col, e.boss ? 40 : 10 + e.r / 3, e.boss ? 260 : 150);
     run.kills++;
-    const n = e.boss ? 14 : e.giant ? 6 : 1, each = Math.max(1, Math.round(e.val * 4 * P.bmult / n));
+    const n = e.boss ? 14 : e.giant ? 6 : 1, each = Math.max(1, Math.round(e.val * 7 * P.bmult / n));
     for (let i = 0; i < n; i++) pickups.push({ x: e.x + rand(-8, 8), y: e.y + rand(-8, 8), v: each, vx: rand(-60, 60), vy: rand(-60, 60) });
     save.stats.kills++;
     if (P.vamp) P.hp = Math.min(P.hpMax, P.hp + P.vamp);
@@ -1395,7 +1395,7 @@
 
     // room cleared
     if (state === 'play' && !queue.length && !enemies.length) { state = 'clear'; clearT = 0; bannerT = 3; ebul = []; hazards = []; mines = []; P.hp = Math.min(P.hpMax, P.hp + P.hpMax * (P.regenRoom || 0) + P.hpMax * (bossRoom(run.room) ? 0.3 : 0.08));
-      { const bonus = Math.round((12 + run.room * 2.5) * (bossRoom(run.room) ? 5 : 1) * P.bmult); run.ban += bonus; save.ban += bonus; save.stats.coins += bonus; save.stats.rooms++; if (!P.hurtRoom) save.stats.flawless++; clearBonus = bonus; }
+      { const bonus = Math.round((22 + run.room * 4.5) * (bossRoom(run.room) ? 5 : 1) * P.bmult); run.ban += bonus; save.ban += bonus; save.stats.coins += bonus; save.stats.rooms++; if (!P.hurtRoom) save.stats.flawless++; clearBonus = bonus; }
       persist(); tone(660, 0.3, 'triangle', 0.07, 400); }
     if (state === 'clear' && P.y < TOP + P.r + 12 && Math.abs(P.x - RW / 2) < 36) { persist(); makeOffer(); state = 'upgrade'; joy.on = false; joy.dx = joy.dy = 0; tone(440, 0.25, 'triangle', 0.06, 300); }
   }
