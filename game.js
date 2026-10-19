@@ -1,7 +1,7 @@
 // Monkeys vs Opps: clear rooms of Opps, pick one of three upgrades, beat a boss every 10 rooms. Stand still to shoot, move to dodge.
 // Drag anywhere with your thumb to move. Your monkey starts at the bottom, opps drop in from the top, and it auto-fires.
 (() => {
-  const VERSION = 'v32';
+  const VERSION = 'v33';
   const cv = document.getElementById('c'); let ctx = cv.getContext('2d'); const mainCtx = ctx;
   let W, H, S, AW, AH, dpr, hudY = 44, UIY = 0, UIB = 14;
   let RW = 0, RH = 0, camX = 0, camY = 0;                   // the room can be bigger than the screen; the camera follows you
@@ -1650,9 +1650,10 @@
     if (!e.boss) { const bw = Math.max(16, e.r * 2), by = e.y - e.r * 1.75 - 8; ctx.fillStyle = 'rgba(0,0,0,.7)'; ctx.fillRect(e.x - bw / 2 - 1, by - 1, bw + 2, 5); ctx.fillStyle = e.elite ? '#ffd34d' : '#7bed9f'; ctx.fillRect(e.x - bw / 2, by, bw * Math.max(0, e.hp / e.max), 3); }
   }
 
+  const BOSSDRESS = { kingGorilla: { cloth: '#4b525c', acc: '#b8bfca' }, kingMech: { cloth: '#3f4f2a', acc: '#d9b04a' }, kingShadow: { cloth: '#15101f', acc: '#a58bff' }, kingBull: { cloth: '#9a3f22', acc: '#ffd34d' }, kingLion: { cloth: '#7d1a34', acc: '#ffd34d' } };
   const CLOTH = ['#6b4a3a', '#3a4a6b', '#5a3a6b', '#3f5f3f', '#7a3a3a', '#4a4a52'];
   function oppBody(e, r, col) {                                       // torso, arms and legs behind the head
-    const cloth = e.boss ? '#3a2a44' : CLOTH[(e.v + (e.out || 0)) % CLOTH.length], pants = shade(cloth, -0.3), fur = col;
+    const BL = e.boss ? BOSSDRESS[e.look] : null, cloth = e.boss ? (BL ? BL.cloth : '#3a2a44') : CLOTH[(e.v + (e.out || 0)) % CLOTH.length], pants = shade(cloth, -0.3), fur = col;
     const big = e.kind === 'tank' || e.giant || e.boss ? 1.2 : 1;
     for (const sx of [-1, 1]) {                                        // legs swing as it walks
       const st = Math.sin(e.ph + (sx > 0 ? Math.PI : 0)), hx = sx * r * 0.34 * big, hy = r * 1.2, fx = hx + st * r * 0.22, fy = r * 2.0 - Math.max(0, st) * r * 0.16;
@@ -1669,6 +1670,27 @@
     ball(0, r * 1.0, r * 0.78 * big, cloth, 1.08, 0.95);
     ctx.strokeStyle = 'rgba(0,0,0,.3)'; ctx.lineWidth = Math.max(1, r * 0.05); ctx.beginPath(); ctx.moveTo(0, r * 0.45); ctx.lineTo(0, r * 1.6); ctx.stroke();
     ctx.fillStyle = shade(cloth, 0.3); ctx.beginPath(); ctx.arc(r * 0.3, r * 1.0, r * 0.08, 0, 6.28); ctx.fill();
+    if (BL) {                                                          // each boss has its own outfit
+      const a = BL.acc, L = e.look; ctx.lineWidth = Math.max(1.2, r * 0.05); ctx.strokeStyle = INK;
+      if (L === 'kingGorilla') {                                       // riot armour: plated shoulders with spikes and a chest plate
+        for (const sx of [-1, 1]) { ball(sx * r * 0.85, r * 0.8, r * 0.34, a, 1.1, 0.8); ctx.fillStyle = '#6a707a'; ctx.beginPath(); ctx.moveTo(sx * r * 0.75, r * 0.58); ctx.lineTo(sx * r * 0.85, r * 0.2); ctx.lineTo(sx * r * 0.98, r * 0.6); ctx.fill(); }
+        ctx.fillStyle = a; rr(-r * 0.4, r * 0.55, r * 0.8, r * 0.7, r * 0.12); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#e84343'; ctx.fillRect(-r * 0.4, r * 0.85, r * 0.8, r * 0.1);
+      } else if (L === 'kingMech') {                                   // soldier: ammo belt, shoulder missile pods
+        ctx.strokeStyle = '#2a2014'; ctx.lineWidth = r * 0.2; ctx.beginPath(); ctx.moveTo(-r * 0.7, r * 0.55); ctx.lineTo(r * 0.7, r * 1.4); ctx.stroke();
+        ctx.fillStyle = a; for (let i = 0; i < 4; i++) { const t = (i + 0.5) / 4; ctx.beginPath(); ctx.arc(-r * 0.7 + t * r * 1.4, r * 0.55 + t * r * 0.85, r * 0.09, 0, 6.28); ctx.fill(); }
+        for (const sx of [-1, 1]) { ctx.fillStyle = '#2b3320'; rr(sx * r * 0.7 - r * 0.2, r * 0.25, r * 0.4, r * 0.5, r * 0.06); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#e84343'; ctx.beginPath(); ctx.arc(sx * r * 0.7, r * 0.37, r * 0.07, 0, 6.28); ctx.arc(sx * r * 0.7, r * 0.6, r * 0.07, 0, 6.28); ctx.fill(); }
+      } else if (L === 'kingShadow') {                                 // cloak with glowing runes and a tattered hem
+        ctx.fillStyle = shade(cloth, -0.2); ctx.beginPath(); ctx.moveTo(-r * 0.95, r * 0.6); ctx.lineTo(r * 0.95, r * 0.6); ctx.lineTo(r * 1.1, r * 1.9); for (let i = 4; i >= -4; i--) ctx.lineTo(i * r * 0.27, r * (1.9 + (i % 2 ? 0.25 : 0))); ctx.lineTo(-r * 1.1, r * 1.9); ctx.closePath(); ctx.fill();
+        ctx.strokeStyle = a; ctx.lineWidth = Math.max(1.5, r * 0.06); ctx.beginPath(); ctx.moveTo(0, r * 0.6); ctx.lineTo(0, r * 1.8); ctx.moveTo(-r * 0.25, r * 1.0); ctx.lineTo(r * 0.25, r * 1.0); ctx.moveTo(-r * 0.18, r * 1.35); ctx.lineTo(r * 0.18, r * 1.35); ctx.stroke();
+      } else if (L === 'kingBull') {                                   // bare-chested brawler: gold belt, spiked bracers
+        ctx.fillStyle = a; rr(-r * 0.78, r * 1.35, r * 1.56, r * 0.22, r * 0.05); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#e84343'; ctx.beginPath(); ctx.arc(0, r * 1.46, r * 0.12, 0, 6.28); ctx.fill();
+        for (const sx of [-1, 1]) { ball(sx * r * 1.0 * 1.2, r * 1.5, r * 0.3, '#5a3a22', 1.1, 0.9); ctx.fillStyle = a; for (let i = -1; i <= 1; i++) { ctx.beginPath(); ctx.moveTo(sx * r * 1.2 + i * r * 0.14 - r * 0.05, r * 1.32); ctx.lineTo(sx * r * 1.2 + i * r * 0.14, r * 1.1); ctx.lineTo(sx * r * 1.2 + i * r * 0.14 + r * 0.05, r * 1.32); ctx.fill(); } }
+      } else if (L === 'kingLion') {                                   // royal robe with a fur collar and gold trim
+        ctx.fillStyle = a; ctx.fillRect(-r * 0.12, r * 0.5, r * 0.24, r * 1.3); ctx.fillRect(-r * 0.8, r * 1.55, r * 1.6, r * 0.14);
+        ctx.fillStyle = '#f2ead8'; for (let i = -3; i <= 3; i++) { ctx.beginPath(); ctx.arc(i * r * 0.22, r * 0.55, r * 0.17, 0, 6.28); ctx.fill(); }
+        ctx.fillStyle = '#e84343'; ctx.beginPath(); ctx.arc(0, r * 0.95, r * 0.1, 0, 6.28); ctx.fill();
+      }
+    }
   }
 
   function oppMutation(e, r) {                                          // serum mutations: glowing green skin, extra eyes, bone, metal, spikes, growths
@@ -1827,7 +1849,7 @@
       ctx.strokeStyle = '#d8b04a'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(0, r * 0.5, r * 0.14, 0, 3.14); ctx.stroke();
       angryEyes(r, -r * 0.18, r * 0.3, r * 0.12, '#ffd6c0');
     } else { ball(0, 0, r, col); angryEyes(r, -r * 0.2, r * 0.3, r * 0.15); }
-    if (e.boss) {                                                                         // crown
+    if (e.boss && e.look === 'kingLion') {                                                // only the Overlord wears the crown
       ctx.fillStyle = '#ffd34d'; ctx.beginPath(); const y0 = -r * 1.0;
       ctx.moveTo(-r * 0.55, y0); ctx.lineTo(-r * 0.62, y0 - r * 0.45); ctx.lineTo(-r * 0.3, y0 - r * 0.2); ctx.lineTo(0, y0 - r * 0.55); ctx.lineTo(r * 0.3, y0 - r * 0.2); ctx.lineTo(r * 0.62, y0 - r * 0.45); ctx.lineTo(r * 0.55, y0); ctx.closePath(); ctx.fill();
       ctx.fillStyle = 'rgba(255,255,255,.4)'; ctx.fillRect(-r * 0.5, y0 - r * 0.08, r * 1.0, r * 0.06);
