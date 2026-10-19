@@ -1,7 +1,7 @@
 // Monkeys vs Opps: clear rooms of Opps, pick one of three upgrades, beat a boss every 10 rooms. Stand still to shoot, move to dodge.
 // Drag anywhere with your thumb to move. Your monkey starts at the bottom, opps drop in from the top, and it auto-fires.
 (() => {
-  const VERSION = 'v33';
+  const VERSION = 'v34';
   const cv = document.getElementById('c'); let ctx = cv.getContext('2d'); const mainCtx = ctx;
   let W, H, S, AW, AH, dpr, hudY = 44, UIY = 0, UIB = 14;
   let RW = 0, RH = 0, camX = 0, camY = 0;                   // the room can be bigger than the screen; the camera follows you
@@ -278,14 +278,19 @@
   const permLevel = (cid, k) => (save.perm[cid] && save.perm[cid][k]) || 0;
   const permCost = (u, l) => Math.round(u.base * (1 + l * 0.9 + l * l * 0.15));
 
-  const BOSSES = [
-    { id: 'enforcer', name: 'THE ENFORCER',  sub: 'Heavy armored Opp. Slams, charges and calls backup.', look: 'kingGorilla', r: 52, hp: 1.25, sp: 30, dmg: 1 },
-    { id: 'war',      name: 'WAR MACHINE',   sub: 'Missile barrages, laser sweeps and explosive traps.', look: 'kingMech',    r: 56, hp: 1.15, sp: 26, dmg: 1.1 },
-    { id: 'shadow',   name: 'SHADOW TYRANT', sub: 'Teleports, strikes fast, and leaves illusions.',      look: 'kingShadow',  r: 46, hp: 0.95, sp: 60, dmg: 1.1 },
-    { id: 'titan',    name: 'TITAN OPP',     sub: 'Arena-wide shockwaves and a rage form.',              look: 'kingBull',    r: 72, hp: 1.5,  sp: 24, dmg: 1.3 },
-    { id: 'overlord', name: 'OPP OVERLORD',  sub: 'Every weapon, every trick.',                          look: 'kingLion',    r: 60, hp: 1.4,  sp: 36, dmg: 1.2 },
+  const BOSSES = [                                                       // ten bosses, each its own character; "ai" picks the attack pattern it fights with
+    { id: 'bandit',  ai: 'enforcer', name: 'SKULL BANDIT',  sub: 'Skull-masked thug. Slams, charges and calls backup.',  look: 'b_bandit',  r: 50, hp: 1.1,  sp: 32, dmg: 1 },
+    { id: 'ninja',   ai: 'shadow',   name: 'RED NINJA',     sub: 'Teleports, strikes fast, and leaves illusions.',       look: 'b_ninja',   r: 46, hp: 0.95, sp: 60, dmg: 1.1 },
+    { id: 'ammo',    ai: 'war',      name: 'AMMO BRUTE',    sub: 'Missile barrages, laser sweeps and explosive traps.',  look: 'b_ammo',    r: 56, hp: 1.2,  sp: 26, dmg: 1.1 },
+    { id: 'ghillie', ai: 'war',      name: 'GHILLIE SNIPER', sub: 'Hidden in the leaves. Lasers and traps everywhere.',  look: 'b_ghillie', r: 50, hp: 1.0,  sp: 30, dmg: 1.15 },
+    { id: 'riot',    ai: 'enforcer', name: 'RIOT TANK',     sub: 'Shielded and heavy. Slams and charges.',               look: 'b_riot',    r: 58, hp: 1.4,  sp: 28, dmg: 1.1 },
+    { id: 'blast',   ai: 'war',      name: 'BLAST ENGINEER', sub: 'Explosives, mines and missiles.',                     look: 'b_blast',   r: 52, hp: 1.2,  sp: 30, dmg: 1.2 },
+    { id: 'toxic',   ai: 'shadow',   name: 'TOXIC STALKER', sub: 'Gas-masked and fast. Teleports and strikes.',          look: 'b_toxic',   r: 48, hp: 1.1,  sp: 58, dmg: 1.2 },
+    { id: 'volt',    ai: 'overlord', name: 'VOLT CYBORG',   sub: 'Every weapon, every trick.',                           look: 'b_volt',    r: 56, hp: 1.35, sp: 36, dmg: 1.25 },
+    { id: 'chain',   ai: 'titan',    name: 'CHAINBREAKER',  sub: 'Arena-wide shockwaves and a rage form.',               look: 'b_chain',   r: 72, hp: 1.5,  sp: 24, dmg: 1.3 },
+    { id: 'king',    ai: 'overlord', name: 'THE KONG KING', sub: 'Every weapon, every trick. The final crown.',          look: 'b_king',    r: 62, hp: 1.6,  sp: 36, dmg: 1.3 },
   ];
-  const bossCfg = room => BOSSES[((room / 10 - 1) % 5 + 5) % 5];
+  const bossCfg = room => BOSSES[((room / 10 - 1) % BOSSES.length + BOSSES.length) % BOSSES.length];
   // ---------- opps ----------
   const TYPES = {
     runt:    { r: 10, hp: 14,  sp: 82,  dmg: 6,  val: 1, col: '#ff6b6b' },
@@ -467,7 +472,7 @@
     e.v = Math.floor(Math.random() * 3); e.ph = rand(0, 6.28); e.chillT = 0; e.pois = 0; e.poisT = 0; e.faceA = Math.PI / 2;
     if (e.boss) {                                                  // each boss has its own build
       const B = bossCfg(room);
-      e.id = B.id; e.name = B.name; e.sub = B.sub; e.r = B.r; e.hp = e.max = e.max * B.hp; e.sp = B.sp; e.dmg *= B.dmg; e.bdmg *= B.dmg;
+      e.id = B.ai; e.name = B.name; e.sub = B.sub; e.r = B.r; e.hp = e.max = e.max * B.hp; e.sp = B.sp; e.dmg *= B.dmg; e.bdmg *= B.dmg;
       e.mode = 'idle'; e.mt = 1.2; e.pat = 0; e.dx = 0; e.dy = 1; e.sa = 0; e.et = 0; e.phase = 1; e.intro = 1.9; e.sched = [];
     }
     e.x = x; e.y = y; if (!e.boss && walls.length) pushOut(e, e.r + 4);
@@ -1603,6 +1608,7 @@
   BASE.monkey = ['#4f9a42', '#3b8f7c', '#8a5fb8']; BASE.gorilla = ['#2f6a3a', '#3a4f6a', '#4a2f6a']; BASE.mandrill = ['#4a8a3a', '#7a3a8a', '#3a6a7a'];
   BASE.kingMech = ['#7a8294']; BASE.kingShadow = ['#241d33'];
   BASE.kingGorilla = ['#3a3a46', '#4a4252', '#2c3a3a']; BASE.kingLion = ['#e0a040']; BASE.kingBull = ['#7a3b2a'];
+  for (const k of ['b_bandit', 'b_ninja', 'b_ammo', 'b_ghillie', 'b_riot', 'b_blast', 'b_toxic', 'b_volt', 'b_chain', 'b_king']) BASE[k] = ['#2b2a31'];
   function drawOpp(e) {
     ctx.save(); ctx.translate(e.x, e.y);
     if (e.spawn > 0) { ctx.restore(); return; }                      // nothing is drawn before an opp arrives
@@ -1614,7 +1620,7 @@
     if (e.boss && e.mode === 'blink') { ctx.strokeStyle = 'rgba(160,120,255,.8)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(e.tx - e.x, e.ty - e.y, 46 * clamp(1 - e.mt / 0.55, 0, 1) + 12, 0, 6.28); ctx.stroke(); cglow(e.tx - e.x, e.ty - e.y, 120, '#9b7bff', 0.5); }
     if (e.boss && e.mode === 'tele') {                                // warning before a boss move
       const pul = 0.4 + 0.4 * Math.sin(e.mt * 40);
-      if ((e.look === 'kingGorilla' && e.next === 'slam') || (e.look === 'kingBull' && e.next === 'smash')) { ctx.strokeStyle = `rgba(255,80,80,${pul + 0.2})`; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(0, 0, 130 * clamp(1 - Math.max(0, e.mt) / (e.look === 'kingBull' ? 1 : 0.8), 0, 1) + 20, 0, 6.28); ctx.stroke(); }
+      if ((e.id === 'enforcer' && e.next === 'slam') || (e.id === 'titan' && e.next === 'smash')) { ctx.strokeStyle = `rgba(255,80,80,${pul + 0.2})`; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(0, 0, 130 * clamp(1 - Math.max(0, e.mt) / (e.look === 'kingBull' ? 1 : 0.8), 0, 1) + 20, 0, 6.28); ctx.stroke(); }
       else { ctx.strokeStyle = `rgba(255,80,80,${pul + 0.2})`; ctx.lineWidth = r * 0.6; ctx.lineCap = 'butt'; ctx.beginPath(); ctx.moveTo(e.dx * r, e.dy * r); ctx.lineTo(e.dx * 420, e.dy * 420); ctx.stroke(); }
     }
     if (e.sn === 1) {                                                   // sniper laser line: dodge before it fires
@@ -1650,7 +1656,7 @@
     if (!e.boss) { const bw = Math.max(16, e.r * 2), by = e.y - e.r * 1.75 - 8; ctx.fillStyle = 'rgba(0,0,0,.7)'; ctx.fillRect(e.x - bw / 2 - 1, by - 1, bw + 2, 5); ctx.fillStyle = e.elite ? '#ffd34d' : '#7bed9f'; ctx.fillRect(e.x - bw / 2, by, bw * Math.max(0, e.hp / e.max), 3); }
   }
 
-  const BOSSDRESS = { kingGorilla: { cloth: '#4b525c', acc: '#b8bfca' }, kingMech: { cloth: '#3f4f2a', acc: '#d9b04a' }, kingShadow: { cloth: '#15101f', acc: '#a58bff' }, kingBull: { cloth: '#9a3f22', acc: '#ffd34d' }, kingLion: { cloth: '#7d1a34', acc: '#ffd34d' } };
+  const BOSSDRESS = { b_bandit: { cloth: '#1f1f26', acc: '#d93a3a' }, b_ninja: { cloth: '#1a1418', acc: '#d93a3a' }, b_ammo: { cloth: '#26262c', acc: '#d9a83a' }, b_ghillie: { cloth: '#3b4a24', acc: '#6a7a38' }, b_riot: { cloth: '#2c2f36', acc: '#8a909c' }, b_blast: { cloth: '#2a2420', acc: '#ff8a2a' }, b_toxic: { cloth: '#2e3a22', acc: '#9dff5a' }, b_volt: { cloth: '#1c2233', acc: '#5ec8ff' }, b_chain: { cloth: '#2a2a2e', acc: '#9aa0aa' }, b_king: { cloth: '#3a1a22', acc: '#ffd34d' } };
   const CLOTH = ['#6b4a3a', '#3a4a6b', '#5a3a6b', '#3f5f3f', '#7a3a3a', '#4a4a52'];
   function oppBody(e, r, col) {                                       // torso, arms and legs behind the head
     const BL = e.boss ? BOSSDRESS[e.look] : null, cloth = e.boss ? (BL ? BL.cloth : '#3a2a44') : CLOTH[(e.v + (e.out || 0)) % CLOTH.length], pants = shade(cloth, -0.3), fur = col;
@@ -1671,30 +1677,52 @@
     ctx.strokeStyle = 'rgba(0,0,0,.3)'; ctx.lineWidth = Math.max(1, r * 0.05); ctx.beginPath(); ctx.moveTo(0, r * 0.45); ctx.lineTo(0, r * 1.6); ctx.stroke();
     ctx.fillStyle = shade(cloth, 0.3); ctx.beginPath(); ctx.arc(r * 0.3, r * 1.0, r * 0.08, 0, 6.28); ctx.fill();
     if (BL) {                                                          // each boss has its own outfit
-      const a = BL.acc, L = e.look; ctx.lineWidth = Math.max(1.2, r * 0.05); ctx.strokeStyle = INK;
-      if (L === 'kingGorilla') {                                       // riot armour: plated shoulders with spikes and a chest plate
-        for (const sx of [-1, 1]) { ball(sx * r * 0.85, r * 0.8, r * 0.34, a, 1.1, 0.8); ctx.fillStyle = '#6a707a'; ctx.beginPath(); ctx.moveTo(sx * r * 0.75, r * 0.58); ctx.lineTo(sx * r * 0.85, r * 0.2); ctx.lineTo(sx * r * 0.98, r * 0.6); ctx.fill(); }
-        ctx.fillStyle = a; rr(-r * 0.4, r * 0.55, r * 0.8, r * 0.7, r * 0.12); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#e84343'; ctx.fillRect(-r * 0.4, r * 0.85, r * 0.8, r * 0.1);
-      } else if (L === 'kingMech') {                                   // soldier: ammo belt, shoulder missile pods
-        ctx.strokeStyle = '#2a2014'; ctx.lineWidth = r * 0.2; ctx.beginPath(); ctx.moveTo(-r * 0.7, r * 0.55); ctx.lineTo(r * 0.7, r * 1.4); ctx.stroke();
-        ctx.fillStyle = a; for (let i = 0; i < 4; i++) { const t = (i + 0.5) / 4; ctx.beginPath(); ctx.arc(-r * 0.7 + t * r * 1.4, r * 0.55 + t * r * 0.85, r * 0.09, 0, 6.28); ctx.fill(); }
-        for (const sx of [-1, 1]) { ctx.fillStyle = '#2b3320'; rr(sx * r * 0.7 - r * 0.2, r * 0.25, r * 0.4, r * 0.5, r * 0.06); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#e84343'; ctx.beginPath(); ctx.arc(sx * r * 0.7, r * 0.37, r * 0.07, 0, 6.28); ctx.arc(sx * r * 0.7, r * 0.6, r * 0.07, 0, 6.28); ctx.fill(); }
-      } else if (L === 'kingShadow') {                                 // cloak with glowing runes and a tattered hem
-        ctx.fillStyle = shade(cloth, -0.2); ctx.beginPath(); ctx.moveTo(-r * 0.95, r * 0.6); ctx.lineTo(r * 0.95, r * 0.6); ctx.lineTo(r * 1.1, r * 1.9); for (let i = 4; i >= -4; i--) ctx.lineTo(i * r * 0.27, r * (1.9 + (i % 2 ? 0.25 : 0))); ctx.lineTo(-r * 1.1, r * 1.9); ctx.closePath(); ctx.fill();
-        ctx.strokeStyle = a; ctx.lineWidth = Math.max(1.5, r * 0.06); ctx.beginPath(); ctx.moveTo(0, r * 0.6); ctx.lineTo(0, r * 1.8); ctx.moveTo(-r * 0.25, r * 1.0); ctx.lineTo(r * 0.25, r * 1.0); ctx.moveTo(-r * 0.18, r * 1.35); ctx.lineTo(r * 0.18, r * 1.35); ctx.stroke();
-      } else if (L === 'kingBull') {                                   // bare-chested brawler: gold belt, spiked bracers
-        ctx.fillStyle = a; rr(-r * 0.78, r * 1.35, r * 1.56, r * 0.22, r * 0.05); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#e84343'; ctx.beginPath(); ctx.arc(0, r * 1.46, r * 0.12, 0, 6.28); ctx.fill();
-        for (const sx of [-1, 1]) { ball(sx * r * 1.0 * 1.2, r * 1.5, r * 0.3, '#5a3a22', 1.1, 0.9); ctx.fillStyle = a; for (let i = -1; i <= 1; i++) { ctx.beginPath(); ctx.moveTo(sx * r * 1.2 + i * r * 0.14 - r * 0.05, r * 1.32); ctx.lineTo(sx * r * 1.2 + i * r * 0.14, r * 1.1); ctx.lineTo(sx * r * 1.2 + i * r * 0.14 + r * 0.05, r * 1.32); ctx.fill(); } }
-      } else if (L === 'kingLion') {                                   // royal robe with a fur collar and gold trim
-        ctx.fillStyle = a; ctx.fillRect(-r * 0.12, r * 0.5, r * 0.24, r * 1.3); ctx.fillRect(-r * 0.8, r * 1.55, r * 1.6, r * 0.14);
-        ctx.fillStyle = '#f2ead8'; for (let i = -3; i <= 3; i++) { ctx.beginPath(); ctx.arc(i * r * 0.22, r * 0.55, r * 0.17, 0, 6.28); ctx.fill(); }
-        ctx.fillStyle = '#e84343'; ctx.beginPath(); ctx.arc(0, r * 0.95, r * 0.1, 0, 6.28); ctx.fill();
+      const a = BL.acc, L = e.look, glo = (x, y, rr2, c) => glowAt(x, y, rr2, c, 0.7);
+      ctx.lineWidth = Math.max(1.2, r * 0.05); ctx.strokeStyle = INK;
+      const strap = (x1, y1, x2, y2, c, w) => { ctx.strokeStyle = c; ctx.lineWidth = r * w; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); };
+      if (L === 'b_bandit') {                                           // harness, pouches and a red scarf
+        strap(-r * 0.6, r * 0.5, r * 0.5, r * 1.4, '#3a3a44', 0.14); strap(r * 0.6, r * 0.5, -r * 0.5, r * 1.4, '#3a3a44', 0.14);
+        ctx.fillStyle = '#5a5a66'; rr(-r * 0.1, r * 0.95, r * 0.2, r * 0.2, 2); ctx.fill();
+        ctx.fillStyle = a; ctx.beginPath(); ctx.moveTo(-r * 0.5, r * 0.45); ctx.lineTo(r * 0.5, r * 0.45); ctx.lineTo(0, r * 1.05); ctx.closePath(); ctx.fill(); ctx.stroke();
+      } else if (L === 'b_ninja') {                                      // hooded sash and belt
+        ctx.fillStyle = a; ctx.beginPath(); ctx.moveTo(-r * 0.7, r * 0.45); ctx.lineTo(r * 0.7, r * 0.45); ctx.lineTo(r * 0.45, r * 0.8); ctx.lineTo(-r * 0.45, r * 0.8); ctx.closePath(); ctx.fill(); ctx.stroke();
+        strap(-r * 0.7, r * 1.3, r * 0.7, r * 1.3, a, 0.2); strap(0, r * 0.8, r * 0.1, r * 1.9, a, 0.14);
+      } else if (L === 'b_ammo') {                                       // crossed bandoliers of gold shells
+        for (const sg of [-1, 1]) { strap(sg * r * 0.7, r * 0.5, -sg * r * 0.7, r * 1.45, '#1a1a1e', 0.22); for (let i = 0; i < 5; i++) { const t = (i + 0.5) / 5, x = sg * r * 0.7 - sg * t * r * 1.4, y = r * 0.5 + t * r * 0.95; ctx.fillStyle = a; rr(x - r * 0.07, y - r * 0.14, r * 0.14, r * 0.28, r * 0.05); ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.stroke(); } }
+        ctx.fillStyle = '#4a4a54'; rr(-r * 0.3, r * 0.75, r * 0.6, r * 0.45, r * 0.08); ctx.fill();
+      } else if (L === 'b_ghillie') {                                    // shaggy leaf cloak
+        ctx.fillStyle = '#4a5a2a'; for (let i = 0; i < 26; i++) { const an = i * 2.4, rx = Math.cos(an) * r * 0.75 * ((i % 5) / 5 + 0.4), ry = r * 1.05 + Math.sin(an) * r * 0.75 * ((i % 4) / 4 + 0.3); ctx.beginPath(); ctx.moveTo(rx - r * 0.12, ry); ctx.lineTo(rx + (i % 2 ? 1 : -1) * r * 0.06, ry + r * 0.4); ctx.lineTo(rx + r * 0.12, ry); ctx.fillStyle = i % 3 ? '#4a5a2a' : '#6a7a38'; ctx.fill(); }
+        strap(r * 0.6, r * 0.2, r * 0.2, r * 1.0, '#222', 0.12);
+      } else if (L === 'b_riot') {                                       // plates and a big riot shield
+        for (const sg of [-1, 1]) { ball(sg * r * 0.85, r * 0.7, r * 0.36, '#3a3e48', 1.1, 0.85); }
+        ctx.fillStyle = '#4a4e5a'; rr(-r * 0.45, r * 0.5, r * 0.9, r * 0.8, r * 0.1); ctx.fill(); ctx.stroke();
+        ctx.save(); ctx.translate(-r * 0.95, r * 1.0); ctx.fillStyle = '#7a808c'; rr(-r * 0.45, -r * 0.75, r * 0.9, r * 1.5, r * 0.12); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#3a1418'; rr(-r * 0.3, -r * 0.5, r * 0.6, r * 0.35, r * 0.05); ctx.fill(); ctx.fillStyle = 'rgba(255,90,90,.5)'; ctx.fillRect(-r * 0.25, -r * 0.45, r * 0.5, r * 0.08); ctx.restore();
+      } else if (L === 'b_blast') {                                      // glowing grenades and a charge pack
+        ctx.fillStyle = '#3a3a44'; rr(-r * 0.4, r * 0.65, r * 0.8, r * 0.55, r * 0.08); ctx.fill(); ctx.stroke();
+        for (let i = 0; i < 3; i++) { const x = (i - 1) * r * 0.24; ctx.fillStyle = a; rr(x - r * 0.07, r * 0.72, r * 0.14, r * 0.4, 3); ctx.fill(); glo(x, r * 0.92, r * 0.3, a); }
+        for (const sg of [-1, 1]) { ball(sg * r * 0.8, r * 0.75, r * 0.3, '#2a2a30'); glo(sg * r * 0.8, r * 0.75, r * 0.4, a); ball(sg * r * 0.8, r * 0.75, r * 0.14, a); }
+      } else if (L === 'b_toxic') {                                      // toxin tanks and hose
+        for (const sg of [-1, 1]) { ctx.fillStyle = '#3a4a28'; rr(sg * r * 0.72 - r * 0.15, r * 0.35, r * 0.3, r * 0.9, r * 0.12); ctx.fill(); ctx.stroke(); ctx.fillStyle = a; ctx.fillRect(sg * r * 0.72 - r * 0.1, r * 0.7, r * 0.2, r * 0.35); glo(sg * r * 0.72, r * 0.88, r * 0.4, a); }
+        strap(-r * 0.5, r * 0.5, r * 0.5, r * 1.35, '#d9c43a', 0.14); strap(r * 0.5, r * 0.5, -r * 0.5, r * 1.35, '#d9c43a', 0.14);
+      } else if (L === 'b_volt') {                                       // armoured chest, arc reactor, shoulder orbs
+        ctx.fillStyle = '#7a8296'; rr(-r * 0.5, r * 0.5, r * 1.0, r * 0.85, r * 0.12); ctx.fill(); ctx.stroke();
+        glo(0, r * 0.9, r * 0.8, a); ctx.fillStyle = '#e8fbff'; ctx.beginPath(); ctx.arc(0, r * 0.9, r * 0.18, 0, 6.28); ctx.fill(); ctx.strokeStyle = a; ctx.lineWidth = r * 0.07; ctx.stroke();
+        for (const sg of [-1, 1]) { ball(sg * r * 0.85, r * 0.7, r * 0.3, '#6a7286'); glo(sg * r * 0.85, r * 0.7, r * 0.45, a); ball(sg * r * 0.85, r * 0.7, r * 0.15, a); }
+        const tt = performance.now() / 90; ctx.strokeStyle = a; ctx.lineWidth = 1.6; ctx.beginPath(); for (let i = 0; i < 6; i++) { const x = Math.sin(tt + i * 1.7) * r * 1.2, y = r * (0.4 + i * 0.28); ctx.lineTo(x, y); } ctx.stroke();
+      } else if (L === 'b_chain') {                                      // heavy chains across a bare chest
+        for (const sg of [-1, 1]) { for (let i = 0; i < 7; i++) { const t = i / 6, x = sg * r * 0.7 - sg * t * r * 1.4, y = r * 0.45 + t * r * 0.95; ctx.fillStyle = a; ctx.beginPath(); ctx.ellipse(x, y, r * 0.11, r * 0.07, sg * 0.8 + (i % 2) * 1.2, 0, 6.28); ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.stroke(); } }
+        for (const sg of [-1, 1]) { ball(sg * r * 1.2, r * 1.5, r * 0.3, '#4a4a52', 1.1, 0.9); ctx.fillStyle = a; for (let i = -1; i <= 1; i++) { ctx.beginPath(); ctx.moveTo(sg * r * 1.2 + i * r * 0.14 - r * 0.05, r * 1.32); ctx.lineTo(sg * r * 1.2 + i * r * 0.14, r * 1.1); ctx.lineTo(sg * r * 1.2 + i * r * 0.14 + r * 0.05, r * 1.32); ctx.fill(); } }
+      } else if (L === 'b_king') {                                       // red cape collar, gold armour
+        ctx.fillStyle = '#9a1c30'; ctx.beginPath(); ctx.moveTo(-r * 1.0, r * 0.5); ctx.lineTo(r * 1.0, r * 0.5); ctx.lineTo(r * 1.2, r * 1.8); ctx.lineTo(-r * 1.2, r * 1.8); ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#2a1018'; rr(-r * 0.5, r * 0.6, r * 1.0, r * 1.0, r * 0.1); ctx.fill();
+        ctx.fillStyle = a; ctx.beginPath(); ctx.moveTo(-r * 0.5, r * 0.6); ctx.lineTo(0, r * 1.5); ctx.lineTo(r * 0.5, r * 0.6); ctx.lineTo(r * 0.3, r * 0.6); ctx.lineTo(0, r * 1.15); ctx.lineTo(-r * 0.3, r * 0.6); ctx.closePath(); ctx.fill();
+        for (const sg of [-1, 1]) { ctx.beginPath(); ctx.moveTo(sg * r * 0.7, r * 0.65); ctx.lineTo(sg * r * 1.0, r * 0.15); ctx.lineTo(sg * r * 1.0, r * 0.7); ctx.closePath(); ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.stroke(); }
       }
     }
   }
 
   function oppMutation(e, r) {                                          // serum mutations: glowing green skin, extra eyes, bone, metal, spikes, growths
-    if (!e.mut || !e.mut.length || e.clone) return;
+    if (!e.mut || !e.mut.length || e.clone || (e.boss && e.look.startsWith('b_'))) return;
     const ey = (EYEY[e.look] === undefined ? -0.2 : EYEY[e.look]) * r, t = performance.now() / 1000, big = e.boss ? 0.5 : 1;
     for (const m of e.mut) {
       if (m === 'serum') {
@@ -1757,8 +1785,93 @@
     ctx.restore();
   }
 
+  function bossHead(e, r) {                                              // gritty black gorilla heads, each with its own gear
+    const L = e.look, fur = '#2b2a31', skin = '#8a7458', t = performance.now() / 1000, ln = Math.max(1.4, r * 0.06);
+    const ac = BOSSDRESS[L].acc;
+    for (const sg of [-1, 1]) { ball(sg * r * 0.98, r * 0.02, r * 0.3, fur); ball(sg * r * 0.98, r * 0.02, r * 0.17, '#c99888'); }
+    if (L === 'b_ghillie') {                                                // shaggy hood sits behind the face
+      for (let i = 0; i < 22; i++) { const an = Math.PI + i * 0.3 - 0.4, rx = Math.cos(an) * r * 1.05, ry = Math.sin(an) * r * 1.05; ctx.fillStyle = i % 3 ? '#4a5a2a' : '#6a7a38'; ctx.beginPath(); ctx.moveTo(rx - r * 0.15, ry); ctx.lineTo(rx + Math.cos(an) * r * 0.3, ry + Math.sin(an) * r * 0.3 - r * 0.05); ctx.lineTo(rx + r * 0.15, ry + r * 0.1); ctx.fill(); }
+      ball(0, r * 0.05, r * 1.05, '#4a5a2a', 1.05, 1);
+    }
+    ball(0, 0, r * 0.92, fur, 1.0, 1.02);
+    ctx.save(); ctx.beginPath(); ctx.arc(0, 0, r * 0.9, 0, 6.28); ctx.clip(); furTexture(r * 0.9, fur, 40 + e.v); ctx.restore();
+    ball(0, r * 0.28, r * 0.58, skin, 1.05, 0.82);                          // tan muzzle
+    ctx.fillStyle = 'rgba(0,0,0,.7)'; ctx.beginPath(); ctx.ellipse(-r * 0.1, r * 0.22, r * 0.05, r * 0.07, 0, 0, 6.28); ctx.ellipse(r * 0.1, r * 0.22, r * 0.05, r * 0.07, 0, 0, 6.28); ctx.fill();
+    let eye = '#ff4a3a';
+    if (L === 'b_ammo') eye = '#ffd24a'; else if (L === 'b_ghillie') eye = '#9dff5a'; else if (L === 'b_toxic') eye = '#9dff5a'; else if (L === 'b_volt') eye = '#5ec8ff'; else if (L === 'b_blast') eye = '#ff9a3a';
+    const eyes = (c, sz) => { for (const sg of [-1, 1]) { glowAt(sg * r * 0.33, -r * 0.1, r * 0.4, c, 0.75); ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse(sg * r * 0.33, -r * 0.1, sz, sz * 0.7, 0, 0, 6.28); ctx.fill(); ctx.fillStyle = '#100808'; ctx.beginPath(); ctx.arc(sg * r * 0.33, -r * 0.1, sz * 0.4, 0, 6.28); ctx.fill(); } };
+    const brow = (c) => { ctx.strokeStyle = c || '#14120f'; ctx.lineWidth = r * 0.16; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(-r * 0.62, -r * 0.34); ctx.lineTo(-r * 0.12, -r * 0.18); ctx.moveTo(r * 0.62, -r * 0.34); ctx.lineTo(r * 0.12, -r * 0.18); ctx.stroke(); };
+    const teeth = () => { ctx.fillStyle = '#f2efe6'; for (let i = -2; i <= 2; i++) { ctx.beginPath(); ctx.moveTo(i * r * 0.14 - r * 0.06, r * 0.62); ctx.lineTo(i * r * 0.14, r * 0.8); ctx.lineTo(i * r * 0.14 + r * 0.06, r * 0.62); ctx.fill(); } };
+    if (L === 'b_bandit') {
+      eyes(eye, r * 0.13); brow();
+      ctx.fillStyle = '#1a1a1f'; ctx.beginPath(); ctx.moveTo(-r * 0.7, r * 0.12); ctx.lineTo(r * 0.7, r * 0.12); ctx.lineTo(r * 0.5, r * 0.85); ctx.lineTo(-r * 0.5, r * 0.85); ctx.closePath(); ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = ln; ctx.stroke();   // skull bandana
+      ctx.fillStyle = '#f2efe6'; for (let i = -2; i <= 2; i++) { ctx.fillRect(i * r * 0.14 - r * 0.05, r * 0.5, r * 0.1, r * 0.28); } ctx.fillRect(-r * 0.3, r * 0.4, r * 0.6, r * 0.1);
+      ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(0, r * 0.3, r * 0.14, 0, 6.28); ctx.fill();
+      ball(0, -r * 0.62, r * 0.95, '#141418', 1.02, 0.55);                // cap
+      ctx.fillStyle = '#141418'; ctx.beginPath(); ctx.ellipse(0, -r * 0.4, r * 1.0, r * 0.2, 0, 0, 6.28); ctx.fill(); ctx.fillStyle = '#c93030'; ctx.fillRect(-r * 0.85, -r * 0.62, r * 1.7, r * 0.1);
+    } else if (L === 'b_ninja') {
+      ctx.fillStyle = '#17131a'; for (let i = -3; i <= 3; i++) { ctx.beginPath(); ctx.moveTo(i * r * 0.22 - r * 0.12, -r * 0.7); ctx.lineTo(i * r * 0.26 - r * 0.2, -r * (1.2 - Math.abs(i) * 0.1)); ctx.lineTo(i * r * 0.22 + r * 0.12, -r * 0.75); ctx.fill(); }
+      brow();
+      ctx.fillStyle = '#16121a'; ctx.beginPath(); ctx.moveTo(-r * 0.78, -r * 0.3); ctx.lineTo(r * 0.78, -r * 0.3); ctx.lineTo(r * 0.7, r * 0.08); ctx.lineTo(0, r * 0.18); ctx.lineTo(-r * 0.7, r * 0.08); ctx.closePath(); ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = ln; ctx.stroke();   // visor
+      for (const sg of [-1, 1]) { glowAt(sg * r * 0.33, -r * 0.1, r * 0.45, '#ff3a3a', 0.9); ctx.fillStyle = '#ff5a4a'; ctx.beginPath(); ctx.moveTo(sg * r * 0.14, -r * 0.18); ctx.lineTo(sg * r * 0.6, -r * 0.2); ctx.lineTo(sg * r * 0.5, -r * 0.04); ctx.lineTo(sg * r * 0.16, -r * 0.08); ctx.closePath(); ctx.fill(); }
+      ctx.fillStyle = '#c93030'; ctx.fillRect(-r * 0.78, r * 0.18, r * 1.56, r * 0.12);
+      ctx.strokeStyle = '#14100f'; ctx.lineWidth = r * 0.1; ctx.beginPath(); ctx.moveTo(-r * 0.5, r * 0.5); ctx.lineTo(r * 0.5, r * 0.5); ctx.stroke();
+    } else if (L === 'b_ammo') {
+      eyes(eye, r * 0.13); brow();
+      ctx.fillStyle = '#4a4a54'; ctx.fillRect(-r * 0.5, r * 0.65, r, r * 0.2); ctx.fillStyle = ac; for (let i = -2; i <= 2; i++) ctx.fillRect(i * r * 0.2 - r * 0.04, r * 0.68, r * 0.08, r * 0.14);   // studded collar
+      ctx.fillStyle = '#d9d2b0'; ctx.beginPath(); ctx.moveTo(-r * 0.25, r * 0.5); ctx.lineTo(r * 0.25, r * 0.5); ctx.lineTo(0, r * 0.6); ctx.fill();
+    } else if (L === 'b_ghillie') {
+      brow('#2a3014'); eyes('#e8f0c8', r * 0.1);
+      glowAt(r * 0.33, -r * 0.1, r * 0.6, '#9dff5a', 0.9); ctx.fillStyle = '#3a4a2a'; ctx.beginPath(); ctx.arc(r * 0.33, -r * 0.1, r * 0.26, 0, 6.28); ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = ln; ctx.stroke();
+      ctx.fillStyle = '#9dff5a'; ctx.beginPath(); ctx.arc(r * 0.33, -r * 0.1, r * 0.16, 0, 6.28); ctx.fill(); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(r * 0.28, -r * 0.15, r * 0.04, 0, 6.28); ctx.fill();   // night-vision lens
+      ctx.fillStyle = '#16180f'; ctx.beginPath(); ctx.moveTo(-r * 0.5, r * 0.4); ctx.lineTo(r * 0.5, r * 0.4); ctx.lineTo(r * 0.4, r * 0.85); ctx.lineTo(-r * 0.4, r * 0.85); ctx.closePath(); ctx.fill();
+    } else if (L === 'b_riot') {
+      eyes(eye, r * 0.11);
+      ball(0, -r * 0.25, r * 0.98, '#1c1d22', 1.04, 0.95, -0.3);          // helmet
+      ctx.fillStyle = '#0c0c10'; rr(-r * 0.78, -r * 0.4, r * 1.56, r * 0.38, r * 0.1); ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = ln; ctx.stroke();
+      for (const sg of [-1, 1]) { glowAt(sg * r * 0.33, -r * 0.22, r * 0.4, '#ff3a3a', 0.8); ctx.fillStyle = '#ff4a4a'; ctx.fillRect(sg * r * 0.33 - r * 0.2, -r * 0.27, r * 0.4, r * 0.1); }
+      for (const sg of [-1, 1]) { ball(sg * r * 0.98, r * 0.05, r * 0.26, '#2c2f36'); ball(sg * r * 0.98, r * 0.05, r * 0.14, '#ff4a4a'); }
+      ctx.fillStyle = '#d9d2b0'; ctx.fillRect(-r * 0.4, r * 0.62, r * 0.8, r * 0.05); teeth();
+    } else if (L === 'b_blast') {
+      eyes(eye, r * 0.1);
+      for (const sg of [-1, 1]) { const gx = sg * r * 0.38, gy = -r * 0.36; ctx.fillStyle = '#2a2a30'; ctx.beginPath(); ctx.arc(gx, gy, r * 0.3, 0, 6.28); ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = ln; ctx.stroke(); glowAt(gx, gy, r * 0.6, '#ff8a2a', 0.9); ctx.fillStyle = '#ffb347'; ctx.beginPath(); ctx.arc(gx, gy, r * 0.21, 0, 6.28); ctx.fill(); ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.beginPath(); ctx.arc(gx - r * 0.07, gy - r * 0.07, r * 0.06, 0, 6.28); ctx.fill(); }
+      ctx.strokeStyle = '#2a2a30'; ctx.lineWidth = r * 0.12; ctx.beginPath(); ctx.moveTo(-r * 0.92, -r * 0.4); ctx.lineTo(r * 0.92, -r * 0.4); ctx.stroke();
+      ctx.fillStyle = '#17141a'; ctx.beginPath(); ctx.moveTo(-r * 0.6, r * 0.2); ctx.lineTo(r * 0.6, r * 0.2); ctx.lineTo(r * 0.45, r * 0.85); ctx.lineTo(-r * 0.45, r * 0.85); ctx.closePath(); ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = ln; ctx.stroke();
+      ctx.fillStyle = '#f2efe6'; for (let i = -2; i <= 2; i++) ctx.fillRect(i * r * 0.14 - r * 0.05, r * 0.5, r * 0.1, r * 0.26);
+    } else if (L === 'b_toxic') {
+      brow();
+      ctx.fillStyle = '#16171a'; ctx.beginPath(); ctx.ellipse(0, r * 0.02, r * 0.78, r * 0.62, 0, 0, 6.28); ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = ln; ctx.stroke();    // gas mask
+      for (const sg of [-1, 1]) { glowAt(sg * r * 0.33, -r * 0.1, r * 0.55, '#9dff5a', 0.95); ctx.fillStyle = '#9dff5a'; ctx.beginPath(); ctx.arc(sg * r * 0.33, -r * 0.1, r * 0.22, 0, 6.28); ctx.fill(); ctx.strokeStyle = '#0c0c0f'; ctx.lineWidth = r * 0.07; ctx.stroke(); ctx.fillStyle = '#e6ffa8'; ctx.beginPath(); ctx.arc(sg * r * 0.28, -r * 0.16, r * 0.06, 0, 6.28); ctx.fill(); }
+      ctx.fillStyle = '#2a2c30'; ctx.beginPath(); ctx.ellipse(0, r * 0.52, r * 0.42, r * 0.34, 0, 0, 6.28); ctx.fill(); ctx.stroke();
+      for (const sg of [-1, 1]) { ctx.fillStyle = '#3a3c42'; ctx.beginPath(); ctx.arc(sg * r * 0.5, r * 0.58, r * 0.2, 0, 6.28); ctx.fill(); ctx.stroke(); }
+      ctx.fillStyle = '#6a6e76'; for (let i = -1; i <= 1; i++) ctx.fillRect(i * r * 0.1 - r * 0.02, r * 0.4, r * 0.04, r * 0.26);
+      const u = (t * 0.6) % 1; ctx.fillStyle = `rgba(157,255,90,${0.35 * (1 - u)})`; ctx.beginPath(); ctx.arc(r * 0.6, r * 0.7 - u * r * 0.9, r * (0.1 + u * 0.2), 0, 6.28); ctx.fill();
+    } else if (L === 'b_volt') {
+      ctx.fillStyle = '#14141c'; for (let i = -1; i <= 1; i++) { ctx.beginPath(); ctx.moveTo(i * r * 0.18 - r * 0.1, -r * 0.8); ctx.lineTo(i * r * 0.18, -r * (1.25 - Math.abs(i) * 0.12)); ctx.lineTo(i * r * 0.18 + r * 0.1, -r * 0.8); ctx.fill(); }
+      brow();
+      ctx.fillStyle = '#10141f'; rr(-r * 0.78, -r * 0.3, r * 1.56, r * 0.3, r * 0.12); ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = ln; ctx.stroke();
+      glowAt(0, -r * 0.15, r * 1.0, '#5ec8ff', 0.9); ctx.fillStyle = '#9fe6ff'; rr(-r * 0.7, -r * 0.24, r * 1.4, r * 0.14, r * 0.07); ctx.fill();
+      ctx.fillStyle = '#7a8296'; ctx.fillRect(-r * 0.5, r * 0.65, r, r * 0.2); ctx.fillStyle = '#5ec8ff'; for (let i = -2; i <= 2; i++) ctx.fillRect(i * r * 0.18 - r * 0.04, r * 0.7, r * 0.08, r * 0.08);
+      const tt = t * 11; ctx.strokeStyle = '#9fe6ff'; ctx.lineWidth = 1.6; for (const sg of [-1, 1]) { ctx.beginPath(); for (let i = 0; i < 5; i++) ctx.lineTo(sg * (r * 0.9 + i * r * 0.14), -r * 0.5 + Math.sin(tt + i * 2 + sg) * r * 0.25 + i * r * 0.18); ctx.stroke(); }
+    } else if (L === 'b_chain') {
+      brow(); eyes(eye, r * 0.13);
+      ctx.fillStyle = '#2a0c0c'; ctx.beginPath(); ctx.ellipse(0, r * 0.62, r * 0.46, r * 0.3, 0, 0, 6.28); ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = ln; ctx.stroke();   // roaring maw
+      ctx.fillStyle = '#f2efe6'; for (let i = -2; i <= 2; i++) { ctx.beginPath(); ctx.moveTo(i * r * 0.17 - r * 0.07, r * 0.4); ctx.lineTo(i * r * 0.17, r * (i === -2 || i === 2 ? 0.78 : 0.62)); ctx.lineTo(i * r * 0.17 + r * 0.07, r * 0.4); ctx.fill(); ctx.beginPath(); ctx.moveTo(i * r * 0.17 - r * 0.06, r * 0.86); ctx.lineTo(i * r * 0.17, r * 0.68); ctx.lineTo(i * r * 0.17 + r * 0.06, r * 0.86); ctx.fill(); }
+      ctx.fillStyle = '#c93a4a'; ctx.beginPath(); ctx.ellipse(0, r * 0.72, r * 0.16, r * 0.08, 0, 0, 6.28); ctx.fill();
+      ctx.fillStyle = ac; for (let i = -3; i <= 3; i++) { ctx.beginPath(); ctx.moveTo(i * r * 0.22 - r * 0.07, r * 0.88); ctx.lineTo(i * r * 0.22, r * 1.08); ctx.lineTo(i * r * 0.22 + r * 0.07, r * 0.88); ctx.fill(); }
+    } else if (L === 'b_king') {
+      eyes(eye, r * 0.13); brow();
+      ctx.fillStyle = '#e8e0c8'; ctx.beginPath(); ctx.moveTo(-r * 0.15, r * 0.52); ctx.lineTo(0, r * 0.7); ctx.lineTo(r * 0.15, r * 0.52); ctx.fill();
+      ctx.fillStyle = ac; ctx.strokeStyle = INK; ctx.lineWidth = ln; ctx.beginPath(); const y0 = -r * 0.62;
+      ctx.moveTo(-r * 0.72, y0 + r * 0.14); ctx.lineTo(-r * 0.8, y0 - r * 0.6); ctx.lineTo(-r * 0.4, y0 - r * 0.2); ctx.lineTo(-r * 0.2, y0 - r * 0.75); ctx.lineTo(0, y0 - r * 0.25); ctx.lineTo(r * 0.2, y0 - r * 0.75); ctx.lineTo(r * 0.4, y0 - r * 0.2); ctx.lineTo(r * 0.8, y0 - r * 0.6); ctx.lineTo(r * 0.72, y0 + r * 0.14); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#c92a4a'; ctx.beginPath(); ctx.arc(0, y0 - r * 0.02, r * 0.08, 0, 6.28); ctx.fill(); ctx.fillStyle = 'rgba(255,255,255,.4)'; ctx.fillRect(-r * 0.6, y0 + r * 0.03, r * 1.2, r * 0.05);
+    }
+    ctx.strokeStyle = 'rgba(0,0,0,.35)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, r * 0.93, 0, 6.28); ctx.stroke();
+  }
+
   function beast(e, r, col) {
     const L = e.look, flap = Math.sin(e.ph * 1.6);
+    if (L.startsWith('b_')) { bossHead(e, r); return; }
     const fur = ctx;
     if (L === 'monkey' || L === 'mandrill') {
       ball(-r * 0.95, 0, r * 0.36, col); ball(r * 0.95, 0, r * 0.36, col);
