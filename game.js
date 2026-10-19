@@ -1,7 +1,7 @@
 // Monkeys vs Opps: clear rooms of Opps, pick one of three upgrades, beat a boss every 10 rooms. Stand still to shoot, move to dodge.
 // Drag anywhere with your thumb to move. Your monkey starts at the bottom, opps drop in from the top, and it auto-fires.
 (() => {
-  const VERSION = 'v56';
+  const VERSION = 'v57';
   const cv = document.getElementById('c'); let ctx = cv.getContext('2d'); const mainCtx = ctx;
   let W, H, S, AW, AH, dpr, hudY = 44, UIY = 0, UIB = 14;
   let RW = 0, RH = 0, camX = 0, camY = 0;                   // the room can be bigger than the screen; the camera follows you
@@ -385,7 +385,7 @@
   function buildPlayer() {
     const ch = CHARS[sel], w = WEAP[ch.weapon];
     P = Object.assign({}, w, {
-      ch, x: RW / 2, y: RH - BOT - 180, r: 14 * ESC, hp: ch.hp, hpMax: ch.hp, speed: ch.spd, inv: 1, cd: 0.4, aim: -Math.PI / 2, tick: 0,
+      ch, x: RW / 2, y: RH - BOT - 180, r: 14, hp: ch.hp, hpMax: ch.hp, speed: ch.spd, inv: 1, cd: 0.4, aim: -Math.PI / 2, tick: 0,
       crit: 0.05, magnet: 60, bmult: 1, dr: 0, vamp: 0, invT: 0.7, rico: w.rico || 0, homing: 0, explo: 0, cluster: 0, burn: w.burn || 0,
       spreadFire: 0, stun: 0, boom: w.boom || 0, lives: 2,
       critMul: 2, freeze: 0.05, freezeDur: 0, pois: w.pois || 0, poisDur: 0, pSpread: 0, shatter: 0, psize: 1, side: 0, rear: 0, dodge: 0, shieldHits: 0, cdr: 1,
