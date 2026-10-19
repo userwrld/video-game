@@ -1,7 +1,7 @@
 // Monkeys vs Opps: clear rooms of Opps, pick one of three upgrades, beat a boss every 10 rooms. Stand still to shoot, move to dodge.
 // Drag anywhere with your thumb to move. Your monkey starts at the bottom, opps drop in from the top, and it auto-fires.
 (() => {
-  const VERSION = 'v55';
+  const VERSION = 'v56';
   const cv = document.getElementById('c'); let ctx = cv.getContext('2d'); const mainCtx = ctx;
   let W, H, S, AW, AH, dpr, hudY = 44, UIY = 0, UIB = 14;
   let RW = 0, RH = 0, camX = 0, camY = 0;                   // the room can be bigger than the screen; the camera follows you
@@ -2849,8 +2849,8 @@
     topBar(now);
     const ch = CHARS[sel], owned = save.owned[ch.id], bot = AH - UIY, cx = AW / 2, cy = Math.max(190, AH * 0.28);
     slate(24, cy - 80, AW - 48, 210, 14);
-    { const rg = ctx.createLinearGradient(cx - 90, 0, cx + 90, 0); rg.addColorStop(0, '#2a5a2a'); rg.addColorStop(0.5, '#9dff6a'); rg.addColorStop(1, '#2a5a2a'); ctx.fillStyle = 'rgba(0,0,0,.45)'; ctx.beginPath(); ctx.ellipse(cx, cy + 74, 84, 14, 0, 0, 6.28); ctx.fill(); ctx.strokeStyle = rg; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(cx, cy + 72, 80, 12, 0, 0, 6.28); ctx.stroke(); }
-    if (owned) { if (!drawHero(ch, cx, cy + 100, 72, { idle: now / 1000, flip: 1 })) { ctx.save(); ctx.translate(cx, cy - 22); ctx.scale(1.15, 1.15); drawApe(ctx, 0, 0, 36, ch, -0.5, Math.sin(now / 500) * 3, 0, 0); ctx.restore(); } }
+    { const rg = ctx.createLinearGradient(cx - 90, 0, cx + 90, 0); rg.addColorStop(0, '#2a5a2a'); rg.addColorStop(0.5, '#9dff6a'); rg.addColorStop(1, '#2a5a2a'); ctx.fillStyle = 'rgba(0,0,0,.45)'; ctx.beginPath(); ctx.ellipse(cx, cy + 74, 84 - Math.sin(now / 420) * 4, 14 - Math.sin(now / 420) * 1.5, 0, 0, 6.28); ctx.fill(); ctx.strokeStyle = rg; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(cx, cy + 72, 80, 12, 0, 0, 6.28); ctx.stroke(); }
+    if (owned) { if (!drawHero(ch, cx, cy + 70 - 9 - (Math.sin(now / 420) + 1) * 4, 92, { idle: now / 1000, flip: (HERO_ART[ch.id] && HERO_ART[ch.id].f) || 1 })) { ctx.save(); ctx.translate(cx, cy - 22); ctx.scale(1.15, 1.15); drawApe(ctx, 0, 0, 36, ch, -0.5, Math.sin(now / 500) * 3, 0, 0); ctx.restore(); } }
     else drawPortrait(ch, cx - 60, cy - 70, 120, now, true);
     goldTxt(ch.short.toUpperCase(), cx, cy + 112, 26, 2); txt(ch.role.toUpperCase() + '  -  ' + WEAP[ch.weapon].name, cx, cy + 136, 11, '#bfe3d8');
     const y1 = cy + 160, sn = save.snap && save.owned[save.snap.ch] ? save.snap : null;
