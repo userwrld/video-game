@@ -1,7 +1,7 @@
 // Monkeys vs Opps: clear rooms of Opps, pick one of three upgrades, beat a boss every 10 rooms. Stand still to shoot, move to dodge.
 // Drag anywhere with your thumb to move. Your monkey starts at the bottom, opps drop in from the top, and it auto-fires.
 (() => {
-  const VERSION = 'v63';
+  const VERSION = 'v64';
   const cv = document.getElementById('c'); let ctx = cv.getContext('2d'); const mainCtx = ctx;
   let W, H, S, AW, AH, dpr, hudY = 44, UIY = 0, UIB = 14;
   let RW = 0, RH = 0, camX = 0, camY = 0;                   // the room can be bigger than the screen; the camera follows you
@@ -318,7 +318,7 @@
     const art = heroArt(ch.id); if (!imgOk(art)) return false;
     const cfg = HERO_ART[ch.id] || { p: [7, 3.5], t: [9, 5.5], s: 0.5 }, nw = art.naturalWidth, nh = art.naturalHeight, h = w * nh / nw, sp = cfg.s, hy = h * sp, hs = nh * sp, t = o.walk || 0, mv = o.mv || 0;
     const bob = Math.abs(Math.sin(t)) * h * 0.025 * mv + (o.idle ? Math.sin(o.idle * 2.2) * h * 0.006 : 0), lean = Math.sin(t) * 0.015 * mv, sy = 1 + clamp(o.ly || 0, -1, 1) * 0.035 * mv;
-    const rot = -Math.sin(t) * 0.02 * mv;
+    const rot = -Math.sin(t) * 0.02 * mv + (cfg.f || 1) * (o.tilt || 0);
     ctx.save(); ctx.translate(x, fy - bob); ctx.rotate(lean); ctx.scale(o.flip < 0 ? -1 : 1, sy);
     for (const sg of [-1, 1]) {                                                               // legs swing from the hips
       const sw = Math.sin(t + (sg > 0 ? Math.PI : 0)) * mv;
@@ -346,7 +346,7 @@
     const sp = Math.max(1, P.speed), mvx = (P.vx || 0) / sp, moving = (P.mv || 0) > 0.12;
     P.flip = (cfg.f || 1) * (enemies.length ? (Math.cos(P.aim) < 0 ? -1 : 1) : (moving && Math.abs(mvx) > 0.25 ? Math.sign(mvx) : (Math.cos(P.aim) < 0 ? -1 : 1)));
     const la = P.flip > 0 ? P.aim : Math.PI - P.aim, phi = Math.atan2((cfg.t[1] - cfg.p[1]) * h, (cfg.t[0] - cfg.p[0]) * w);
-    let d = la - phi; d = Math.atan2(Math.sin(d), Math.cos(d)); P.rotA = 0; P.armT = enemies.length ? clamp(d, -1.3, 1.3) : 0; P.armA = (P.armA || 0) + (P.armT - (P.armA || 0)) * 0.35;
+    let d = la - phi; d = Math.atan2(Math.sin(d), Math.cos(d)); P.tilt = enemies.length ? 0.07 + Math.sin(la) * 0.04 : 0; P.rotA = 0; P.armT = enemies.length ? clamp(d, -1.3, 1.3) : 0; P.armA = (P.armA || 0) + (P.armT - (P.armA || 0)) * 0.35;
   }
   function heroMuzzle(a) {                                               // the tip of the weapon (or the palm) in the world, where shots come from
     const art = heroArt(P.ch.id), cfg = HERO_ART[P.ch.id];
@@ -2597,7 +2597,7 @@
       const art = heroArt(P.ch.id);
       if (imgOk(art)) {                                                  // the supplied character artwork, animated
         const sp = Math.max(1, P.speed);
-        drawHero(P.ch, P.x, P.y + P.r * 2.6, P.r * HERO_W, { walk: (P.walk || 0), mv: P.mv || 0, lx: (P.vx || 0) / sp, ly: (P.vy || 0) / sp, flip: P.flip || 1, rot: P.rotA || 0, arm: P.armA || 0, kick: P.kick || 0, idle: performance.now() / 1000 });
+        drawHero(P.ch, P.x, P.y + P.r * 2.6, P.r * HERO_W, { walk: (P.walk || 0), mv: P.mv || 0, lx: (P.vx || 0) / sp, ly: (P.vy || 0) / sp, flip: P.flip || 1, rot: P.rotA || 0, arm: P.armA || 0, tilt: P.tilt || 0, kick: P.kick || 0, idle: performance.now() / 1000 });
       } else {
       ctx.save(); ctx.translate(P.x, P.y + P.r * 2.6); ctx.rotate(clamp((P.vx || 0) / Math.max(1, P.speed), -1, 1) * 0.1); ctx.translate(0, -P.r * 2.6); ctx.scale(1.3, 1.3);
       drawApe(ctx, 0, 0, P.r, P.ch, P.aim, 0, P.walk || 0, P.mv || 0, (P.sl || 0) > 0 ? ((P.sl / 0.14) * 1.5 - 0.75) * -1 : 0, false, P.face);
