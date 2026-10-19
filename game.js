@@ -1,7 +1,7 @@
 // Monkeys vs Opps: clear rooms of Opps, pick one of three upgrades, beat a boss every 10 rooms. Stand still to shoot, move to dodge.
 // Drag anywhere with your thumb to move. Your monkey starts at the bottom, opps drop in from the top, and it auto-fires.
 (() => {
-  const VERSION = 'v61';
+  const VERSION = 'v62';
   const cv = document.getElementById('c'); let ctx = cv.getContext('2d'); const mainCtx = ctx;
   let W, H, S, AW, AH, dpr, hudY = 44, UIY = 0, UIB = 14;
   let RW = 0, RH = 0, camX = 0, camY = 0;                   // the room can be bigger than the screen; the camera follows you
@@ -317,15 +317,15 @@
   function drawHero(ch, x, fy, w, o) {
     const art = heroArt(ch.id); if (!imgOk(art)) return false;
     const cfg = HERO_ART[ch.id] || { p: [7, 3.5], t: [9, 5.5], s: 0.5 }, nw = art.naturalWidth, nh = art.naturalHeight, h = w * nh / nw, sp = cfg.s, hy = h * sp, hs = nh * sp, t = o.walk || 0, mv = o.mv || 0;
-    const bob = Math.abs(Math.sin(t)) * h * 0.025 * mv + (o.idle ? Math.sin(o.idle * 2.2) * h * 0.006 : 0), lean = clamp(o.lx || 0, -1, 1) * 0.1 + Math.sin(t) * 0.03 * mv, sy = 1 + clamp(o.ly || 0, -1, 1) * 0.035 * mv;
-    const rot = -Math.sin(t) * 0.04 * mv + (o.rot || 0) - (o.kick || 0) * 0.12;
+    const bob = Math.abs(Math.sin(t)) * h * 0.025 * mv + (o.idle ? Math.sin(o.idle * 2.2) * h * 0.006 : 0), lean = Math.sin(t) * 0.015 * mv, sy = 1 + clamp(o.ly || 0, -1, 1) * 0.035 * mv;
+    const rot = -Math.sin(t) * 0.02 * mv;
     ctx.save(); ctx.translate(x, fy - bob); ctx.rotate(lean); ctx.scale(o.flip < 0 ? -1 : 1, sy);
     for (const sg of [-1, 1]) {                                                               // legs swing from the hips
       const sw = Math.sin(t + (sg > 0 ? Math.PI : 0)) * mv;
       ctx.save(); ctx.translate(sg * w * 0.25, -h + hy); ctx.translate(0, -Math.max(0, sw) * h * 0.035); ctx.rotate(sw * 0.4);
       ctx.drawImage(art, sg < 0 ? 0 : nw / 2, hs, nw / 2, nh - hs, -w / 4, 0, w / 2, h - hy); ctx.restore();
     }
-    ctx.save(); ctx.translate(0, -h + hy); ctx.translate(-(o.kick || 0) * w * 0.05, 0); ctx.rotate(rot);                         // body + head, rotating about the hips
+    ctx.save(); ctx.translate(0, -h + hy); ctx.translate(-(o.kick || 0) * w * 0.02, 0); ctx.rotate(rot);                         // body + head, rotating about the hips
     const rows = hs + nh * 0.03, rh = hy + h * 0.03, a0 = 0.17, aw = 0.27, wside = cfg.t[0] > 5 ? 1 : -1;
     ctx.save(); ctx.beginPath(); ctx.rect(-w, -h, 2 * w, h * 2);
     for (const sg of [-1, 1]) ctx.rect(sg < 0 ? -w / 2 : w / 2 - aw * w, -hy + a0 * h, aw * w, (sp - a0) * h + h * 0.01);
@@ -350,7 +350,7 @@
   function heroMuzzle(a) {                                               // the tip of the weapon (or the palm) in the world, where shots come from
     const art = heroArt(P.ch.id), cfg = HERO_ART[P.ch.id];
     if (!imgOk(art) || !cfg) return { x: P.x + Math.cos(a) * 18 * ESC * 2, y: P.y + Math.sin(a) * 18 * ESC * 2 };
-    const w = P.r * HERO_W, h = w * art.naturalHeight / art.naturalWidth, hipY = -h + cfg.s * h, tx = (cfg.t[0] / 10 - 0.5) * w, ty = (cfg.t[1] / 10 - 1) * h - hipY, rot = (P.rotA || 0) - (P.kick || 0) * 0.12;
+    const w = P.r * HERO_W, h = w * art.naturalHeight / art.naturalWidth, hipY = -h + cfg.s * h, tx = (cfg.t[0] / 10 - 0.5) * w, ty = (cfg.t[1] / 10 - 1) * h - hipY, rot = 0;
     const c = Math.cos(rot), sn = Math.sin(rot), vx = tx * c - ty * sn, vy = tx * sn + ty * c, fl = P.flip || 1;
     return { x: P.x + fl * vx, y: P.y + P.r * 2.6 + hipY + vy };
   }
