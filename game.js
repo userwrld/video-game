@@ -1,7 +1,7 @@
 // Monkeys vs Opps: clear rooms of Opps, pick one of three upgrades, beat a boss every 10 rooms. Stand still to shoot, move to dodge.
 // Drag anywhere with your thumb to move. Your monkey starts at the bottom, opps drop in from the top, and it auto-fires.
 (() => {
-  const VERSION = 'v37';
+  const VERSION = 'v38';
   const cv = document.getElementById('c'); let ctx = cv.getContext('2d'); const mainCtx = ctx;
   let W, H, S, AW, AH, dpr, hudY = 44, UIY = 0, UIB = 14;
   let RW = 0, RH = 0, camX = 0, camY = 0;                   // the room can be bigger than the screen; the camera follows you
@@ -1440,6 +1440,10 @@
     const chestY = r * 1.15, two = w === 'shotgun' || w === 'rocket' || w === 'flame' || w === 'tommy' || w === 'cannon' || w === 'plasma';
     const cloth = ch.cloth || fur, pants = shade(cloth, -0.35);
     if (!bust) shadow(0, r * 2.7, r * 1.1, r * 0.32);
+    if (!bust) {                                                                              // long curling tail behind the legs
+      const ts = Math.sin(walk * 0.5) * r * 0.25 * (0.3 + mv);
+      sv.lineCap = 'round'; for (const [c, w] of [[INK, r * 0.34], [fur, r * 0.24]]) { sv.strokeStyle = c; sv.lineWidth = w; sv.beginPath(); sv.moveTo(r * 0.1, r * 1.9); sv.bezierCurveTo(r * 0.9, r * 2.5, r * 1.7 + ts, r * 1.9, r * 1.35 + ts, r * 1.15); sv.stroke(); }
+    }
     // legs: swing while moving, planted when still
     if (!bust) for (const sx of [-1, 1]) {
       const sw = Math.sin(walk + (sx > 0 ? Math.PI : 0)) * mv, hipX = sx * r * 0.34, hipY = r * 1.75;
@@ -1447,7 +1451,7 @@
       sv.lineCap = 'round'; sv.strokeStyle = INK; sv.lineWidth = r * 0.62;
       sv.beginPath(); sv.moveTo(hipX, hipY); sv.lineTo(kx, ky); sv.lineTo(fx, fy); sv.stroke();
       sv.strokeStyle = pants; sv.lineWidth = r * 0.46; sv.beginPath(); sv.moveTo(hipX, hipY); sv.lineTo(kx, ky); sv.lineTo(fx, fy); sv.stroke();
-      ball(fx + sx * r * 0.08, fy + r * 0.05, r * 0.34, skin, 1.2, 0.7);                // foot
+      ball(kx, ky, r * 0.21, '#6f7480', 1, 0.95); ball(fx + sx * r * 0.08, fy + r * 0.02, r * 0.38, '#1b1a20', 1.3, 0.8);                // knee pad and lace-up boot
     }
     if (!bust) ball(0, chestY + r * 0.35, r * 0.64, pants, 1, 0.9, -0.3);                                  // hips
     // back arm swings at the side when it isn't holding anything
