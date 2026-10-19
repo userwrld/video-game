@@ -1,7 +1,7 @@
 // Monkeys vs Opps: clear rooms of Opps, pick one of three upgrades, beat a boss every 10 rooms. Stand still to shoot, move to dodge.
 // Drag anywhere with your thumb to move. Your monkey starts at the bottom, opps drop in from the top, and it auto-fires.
 (() => {
-  const VERSION = 'v40';
+  const VERSION = 'v41';
   const cv = document.getElementById('c'); let ctx = cv.getContext('2d'); const mainCtx = ctx;
   let W, H, S, AW, AH, dpr, hudY = 44, UIY = 0, UIB = 14;
   let RW = 0, RH = 0, camX = 0, camY = 0;                   // the room can be bigger than the screen; the camera follows you
@@ -290,9 +290,12 @@
     { id: 'chain',   ai: 'titan',    name: 'CHAINBREAKER',  sub: 'Arena-wide shockwaves and a rage form.',               look: 'b_chain',   r: 72, hp: 1.5,  sp: 24, dmg: 1.3 },
     { id: 'king',    ai: 'overlord', name: 'THE KONG KING', sub: 'Every weapon, every trick. The final crown.',          look: 'b_king',    r: 62, hp: 1.6,  sp: 36, dmg: 1.3 },
   ];
+  const heroArtC = {};
+  function heroArt(id, card) { const k = id + (card ? 'c' : ''); if (!heroArtC[k]) { const im = new Image(); im.src = 'art/hero_' + id + (card ? '_card' : '') + '.webp'; heroArtC[k] = im; } return heroArtC[k]; }
+  const imgOk = im => im && im.complete && im.naturalWidth > 0;
   const BOSS_SPRITES = { bandit: 1 };                                    // bosses drawn from the supplied artwork (cut-outs in art/)
   const bossArtC = {};
-  function bossArt(id) { if (!BOSS_SPRITES[id]) return null; if (!bossArtC[id]) { const im = new Image(); im.src = 'art/boss_' + id + '.png'; bossArtC[id] = im; } return bossArtC[id]; }
+  function bossArt(id) { if (!BOSS_SPRITES[id]) return null; if (!bossArtC[id]) { const im = new Image(); im.src = 'art/boss_' + id + '.webp'; bossArtC[id] = im; } return bossArtC[id]; }
   const bossCfg = room => BOSSES[((room / 10 - 1) % BOSSES.length + BOSSES.length) % BOSSES.length];
   // ---------- opps ----------
   const TYPES = {
@@ -1665,7 +1668,9 @@
     ctx.save();
     ctx.shadowColor = 'rgba(0,0,0,.5)'; ctx.shadowBlur = w * 0.08; ctx.shadowOffsetY = w * 0.03; rr(x, y, w, w, w * 0.07); ctx.fillStyle = ch.bg; ctx.fill(); ctx.shadowColor = 'transparent';
     rr(x, y, w, w, w * 0.07); ctx.clip();
-    drawApe(ctx, x + w / 2, y + w * 0.49 + Math.sin(now / 700) * w * 0.004, w * 0.25, ch, null, 0, 0, 0, 0, true);
+    const card = heroArt(ch.id, true);
+    if (imgOk(card)) { const sh = Math.min(card.naturalHeight, card.naturalWidth * 1.0); ctx.drawImage(card, 0, 0, card.naturalWidth, sh, x, y, w, w); }      // the artwork card, head and shoulders
+    else drawApe(ctx, x + w / 2, y + w * 0.49 + Math.sin(now / 700) * w * 0.004, w * 0.25, ch, null, 0, 0, 0, 0, true);
     if (locked) {
       ctx.fillStyle = 'rgba(12,8,28,.68)'; ctx.fillRect(x, y, w, w);
       const cx = x + w / 2, cy = y + w / 2, k = w * 0.1;
@@ -2482,10 +2487,15 @@
     if (state === 'play' || state === 'clear') list.push({ y: P.y + P.r * 3.0, f: () => {
       const blink = P.inv > 0 && Math.floor(P.inv * 14) % 2 === 0;
       ctx.globalAlpha = blink ? 0.35 : 1;
-      { const bw = 40, bx = P.x - bw / 2, by = P.y - P.r * 2.2, hp = clamp(P.hp / P.hpMax, 0, 1); ctx.fillStyle = 'rgba(0,0,0,.7)'; ctx.fillRect(bx - 1, by - 1, bw + 2, 7); ctx.fillStyle = hp > 0.35 ? '#5fe070' : '#ff6a5a'; ctx.fillRect(bx, by, bw * hp, 5); }
+      { const bw = 40, bx = P.x - bw / 2, by = P.y - P.r * (imgOk(heroArt(P.ch.id)) ? 4.2 : 2.2), hp = clamp(P.hp / P.hpMax, 0, 1); ctx.fillStyle = 'rgba(0,0,0,.7)'; ctx.fillRect(bx - 1, by - 1, bw + 2, 7); ctx.fillStyle = hp > 0.35 ? '#5fe070' : '#ff6a5a'; ctx.fillRect(bx, by, bw * hp, 5); }
+      const art = heroArt(P.ch.id);
+      if (imgOk(art)) {                                                  // the supplied character artwork, with its own weapon
+        const w = P.r * 2.7, h = w * art.naturalHeight / art.naturalWidth, mv = P.mv || 0, bob = Math.abs(Math.sin(P.walk || 0)) * 2.2 * mv, lean = Math.sin(P.walk || 0) * 0.04 * mv + clamp((P.vx || 0) / Math.max(1, P.speed), -1, 1) * 0.08;
+        ctx.save(); ctx.translate(P.x, P.y + P.r * 2.6 - bob); ctx.rotate(lean); if (Math.cos(P.aim) < -0.15) ctx.scale(-1, 1); ctx.drawImage(art, -w / 2, -h, w, h); ctx.restore();
+      } else {
       ctx.save(); ctx.translate(P.x, P.y + P.r * 2.6); ctx.rotate(clamp((P.vx || 0) / Math.max(1, P.speed), -1, 1) * 0.1); ctx.translate(0, -P.r * 2.6); ctx.scale(1.3, 1.3);
       drawApe(ctx, 0, 0, P.r, P.ch, P.aim, 0, P.walk || 0, P.mv || 0, (P.sl || 0) > 0 ? ((P.sl / 0.14) * 1.5 - 0.75) * -1 : 0, false, P.face);
-      ctx.restore();
+      ctx.restore(); }
       ctx.globalAlpha = 1;
     } });
     list.sort((a, b) => a.y - b.y);
