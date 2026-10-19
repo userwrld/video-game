@@ -1,7 +1,7 @@
 // Monkeys vs Opps: clear rooms of Opps, pick one of three upgrades, beat a boss every 10 rooms. Stand still to shoot, move to dodge.
 // Drag anywhere with your thumb to move. Your monkey starts at the bottom, opps drop in from the top, and it auto-fires.
 (() => {
-  const VERSION = 'v70';
+  const VERSION = 'v71';
   const cv = document.getElementById('c'); let ctx = cv.getContext('2d'); const mainCtx = ctx;
   let W, H, S, AW, AH, dpr, hudY = 44, UIY = 0, UIB = 14;
   let RW = 0, RH = 0, camX = 0, camY = 0;                   // the room can be bigger than the screen; the camera follows you
@@ -483,7 +483,8 @@
   const camMaxX = () => Math.max(0, RW - AW), camMaxY = () => Math.max(0, RH - AH);
   function snapCamera() { camX = clamp(P.x - AW / 2, 0, camMaxX()); camY = clamp(P.y - AH * 0.62, 0, camMaxY()); }
   function updateCamera(dt) {
-    const tx = clamp(P.x - AW / 2 + (P.vx || 0) * 0.28, 0, camMaxX()), ty = clamp(P.y - AH * 0.6 + (P.vy || 0) * 0.22, 0, camMaxY()), k = 1 - Math.exp(-dt * 7);
+    const cs = Math.max(1, P.speed), lvx = clamp(P.vx || 0, -cs, cs), lvy = clamp(P.vy || 0, -cs, cs);               // look-ahead ignores dash speed, so a dash never swings the view
+    const tx = clamp(P.x - AW / 2 + lvx * 0.28, 0, camMaxX()), ty = clamp(P.y - AH * 0.6 + lvy * 0.22, 0, camMaxY()), k = 1 - Math.exp(-dt * ((P.dashT || 0) > 0 ? 3 : 7));
     camX += (tx - camX) * k; camY += (ty - camY) * k;
   }
   function placeQueue() {                                                              // enemies wait in packs across the room until you get close
@@ -1330,13 +1331,13 @@
 
     // player bullets
     for (const b of pbul) {
-      if (P.homing && b.k !== 'zap') {
-        let best = null, bd = 220;
+      if (b.k !== 'zap' && b.k !== 'nade') {                           // every shot bends gently toward the nearest opp, so shots land without perfect aim
+        const hm = Math.max(P.homing || 0, 1.3); let best = null, bd = 300;
         for (const e of enemies) { if (e.spawn > 0) continue; const d = Math.hypot(e.x - b.x, e.y - b.y); if (d < bd) { bd = d; best = e; } }
         if (best) {
           const sp = Math.hypot(b.vx, b.vy), cur = Math.atan2(b.vy, b.vx);
           let da = Math.atan2(best.y - b.y, best.x - b.x) - cur; da = Math.atan2(Math.sin(da), Math.cos(da));
-          const na = cur + clamp(da, -dt * 2.2 * P.homing, dt * 2.2 * P.homing);
+          const na = cur + clamp(da, -dt * 2.2 * hm, dt * 2.2 * hm);
           b.vx = Math.cos(na) * sp; b.vy = Math.sin(na) * sp;
         }
       }
