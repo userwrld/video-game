@@ -1,7 +1,7 @@
 // Monkeys vs Opps: clear rooms of Opps, pick one of three upgrades, beat a boss every 10 rooms. Stand still to shoot, move to dodge.
 // Drag anywhere with your thumb to move. Your monkey starts at the bottom, opps drop in from the top, and it auto-fires.
 (() => {
-  const VERSION = 'v50';
+  const VERSION = 'v51';
   const cv = document.getElementById('c'); let ctx = cv.getContext('2d'); const mainCtx = ctx;
   let W, H, S, AW, AH, dpr, hudY = 44, UIY = 0, UIB = 14;
   let RW = 0, RH = 0, camX = 0, camY = 0;                   // the room can be bigger than the screen; the camera follows you
@@ -43,11 +43,11 @@
 
   // ---------- save data ----------
   let save = { ban: 0, owned: { blaze: 1, gunner: 1 }, best: 0, sel: 0, perm: {}, snap: null, stats: { kills: 0, rooms: 0, bosses: 0, coins: 0, runs: 0, evos: 0, flawless: 0, played: {} }, ach: {}, set: { sfx: 1, music: 1, shake: 1, vib: 1 } };
-  const CHAR_IDS = ['blaze', 'gunner', 'volt', 'frost', 'toxic', 'thunder', 'tank', 'shadow', 'plasma', 'chaos', 'slash', 'don', 'disco', 'robin', 'dyna', 'royal', 'crimson', 'sky', 'rogue', 'medic', 'bling'], PERM_IDS = ['lvl', 'hp', 'dmg', 'rate', 'spd', 'ban', 'crit'];
+  const CHAR_IDS = ['blaze', 'gunner', 'volt', 'frost', 'toxic', 'thunder', 'tank', 'shadow', 'plasma', 'chaos', 'slash', 'don', 'disco', 'robin', 'dyna', 'royal', 'crimson', 'sky', 'rogue', 'medic', 'bling', 'storm', 'leaf', 'gravity'], PERM_IDS = ['lvl', 'hp', 'dmg', 'rate', 'spd', 'ban', 'crit'];
   try {
     const raw = JSON.parse(localStorage.getItem('monkey-opps') || localStorage.getItem('banana-breach') || '{}');       // only accept values of the expected shape
     const num = (v, max) => (Number.isFinite(v) ? Math.min(max, Math.max(0, Math.floor(v))) : 0);
-    save.ban = num(raw.ban, 1e9); save.best = num(raw.best, 1e6); save.sel = num(raw.sel, 20);
+    save.ban = num(raw.ban, 1e9); save.best = num(raw.best, 1e6); save.sel = num(raw.sel, 23);
     if (raw.owned && typeof raw.owned === 'object') for (const id of CHAR_IDS) if (raw.owned[id] === 1) save.owned[id] = 1;
     if (raw.stats && typeof raw.stats === 'object') { for (const k of ['kills', 'rooms', 'bosses', 'coins', 'runs', 'evos', 'flawless']) save.stats[k] = num(raw.stats[k], 1e9); if (raw.stats.played && typeof raw.stats.played === 'object') for (const id of CHAR_IDS) if (raw.stats.played[id]) save.stats.played[id] = 1; }
     if (raw.ach && typeof raw.ach === 'object') for (const k of Object.keys(raw.ach).slice(0, 40)) if (raw.ach[k] === 1 && /^[a-z0-9_]{1,24}$/.test(k)) save.ach[k] = 1;
@@ -148,6 +148,9 @@
     { tee: 'cyber', mouth: 'flat', bg: '#b01040', cloth: '#15151c', id: 'rogue',   name: 'Rogue Monkey',   short: 'Rogue',   role: 'Stealth',       weapon: 'shadow', cost: 9500,  fur: '#6a4430', skin: '#d9b48a', acc: 'cyberRed', hp: 100, spd: 166, ability: 'blink',  passive: '+15% crit chance', weak: 'Low health', blurb: 'Red-neon operative who slips in and out of the dark.' },
     { tee: 'plain', mouth: 'grin', bg: '#12c8c8', cloth: '#e8f4f4', id: 'medic',   name: 'Medic Monkey',   short: 'Medic',   role: 'Healing gun',   weapon: 'poison', cost: 8000,  fur: '#8a4a28', skin: '#e0b48a', acc: 'visor',  hp: 115, spd: 156, ability: 'shield', passive: 'Heals a little each room', weak: 'Low damage', blurb: 'Patches himself up between fights with a glowing healing blaster.' },
     { tee: 'plain', mouth: 'grin', bg: '#ee1a30', cloth: '#15151c', id: 'bling',   name: 'Bling Monkey',   short: 'Bling',   role: 'Gold pistol',   weapon: 'gun',    cost: 6000,  fur: '#d01020', skin: '#e8b48a', acc: 'visor',  hp: 105, spd: 158, ability: 'frenzy', passive: 'Coins drop 10% bigger', weak: 'Light armour', blurb: 'Gold chains, gold gun, all swagger.' },
+    { tee: 'plain', mouth: 'flat', bg: '#1e5ff0', cloth: '#1a2a5a', id: 'storm',   name: 'Storm Monkey',   short: 'Storm',   role: 'Lightning',     weapon: 'zap',    cost: 11000, fur: '#5a4030', skin: '#d9b48a', acc: 'visor', hp: 100, spd: 158, ability: 'strike', passive: 'Lightning chains 1 extra', weak: 'Short reach', blurb: 'Calls lightning down through a crackling staff.' },
+    { tee: 'plain', mouth: 'flat', bg: '#4aa832', cloth: '#2a5a24', id: 'leaf',    name: 'Leaf Monkey',    short: 'Leaf',    role: 'Nature',        weapon: 'bow',    cost: 9000,  fur: '#6a4430', skin: '#d9b48a', acc: 'visor', hp: 110, spd: 160, ability: 'shield', passive: 'Arrows pierce once more', weak: 'Slow fire rate', blurb: 'Vines, leaves and living arrows.' },
+    { tee: 'plain', mouth: 'flat', bg: '#18c8ee', cloth: '#15151c', id: 'gravity', name: 'Gravity Monkey', short: 'Gravity', role: 'Gravity',       weapon: 'plasma', cost: 14000, fur: '#2a2a33', skin: '#c9a27a', acc: 'visor', hp: 105, spd: 154, ability: 'nova',   passive: 'Plasma blasts are 25% wider', weak: 'Tight spread', blurb: 'Bends space into crushing orbs.' },
   ];
 
   // ---------- upgrades ----------
@@ -302,8 +305,8 @@
   // where each character's weapon (or hand) sits in its artwork, in tenths of the picture: p = grip, t = tip/palm, s = where the legs start
   const HERO_ART = {
     volt: { p: [4.6, 5.0], t: [7.7, 8.1], s: 0.68 }, gunner: { p: [5.2, 5.3], t: [8.2, 7.7], s: 0.68 }, blaze: { p: [3.2, 3.0], t: [0.6, 2.0], s: 0.52, f: -1 },
-    frost: { p: [8.0, 3.3], t: [9.7, 4.0], s: 0.55 }, toxic: { p: [7.6, 3.2], t: [9.1, 6.2], s: 0.5 }, slash: { p: [8.6, 2.6], t: [9.4, 0.8], s: 0.55 }, thunder: { p: [5.0, 6.5], t: [9.7, 8.0], s: 0.7 }, bling: { p: [2.2, 3.4], t: [1.8, 1.8], s: 0.52, f: -1 },
-    tank: { p: [5.0, 4.8], t: [9.5, 5.9], s: 0.62 }, shadow: { p: [7.5, 3.3], t: [9.2, 5.5], s: 0.5 }, plasma: { p: [8.0, 5.0], t: [9.6, 0.4], s: 0.6 },
+    frost: { p: [8.0, 3.3], t: [9.7, 4.0], s: 0.55 }, toxic: { p: [3.5, 4.6], t: [0.5, 2.7], s: 0.55, f: -1 }, storm: { p: [7.5, 5.0], t: [9.3, 5.0], s: 0.6 }, leaf: { p: [3.0, 3.2], t: [1.2, 2.8], s: 0.6, f: -1 }, gravity: { p: [3.0, 3.2], t: [1.0, 2.9], s: 0.6, f: -1 }, slash: { p: [8.6, 2.6], t: [9.4, 0.8], s: 0.55 }, thunder: { p: [5.0, 6.5], t: [9.7, 8.0], s: 0.7 }, bling: { p: [2.2, 3.4], t: [1.8, 1.8], s: 0.52, f: -1 },
+    tank: { p: [5.0, 4.8], t: [9.5, 5.9], s: 0.62 }, shadow: { p: [2.0, 5.7], t: [9.7, 8.6], s: 0.55 }, plasma: { p: [8.0, 5.0], t: [9.6, 0.4], s: 0.6 },
     chaos: { p: [5.3, 5.6], t: [9.5, 8.3], s: 0.68 }, royal: { p: [7.0, 4.0], t: [8.2, 4.2], s: 0.5 }, crimson: { p: [4.3, 5.4], t: [5.5, 7.5], s: 0.62 },
     sky: { p: [7.6, 3.0], t: [9.0, 1.8], s: 0.55 }, medic: { p: [7.7, 2.8], t: [9.5, 1.5], s: 0.55 }, robin: { p: [4.6, 4.5], t: [9.6, 1.3], s: 0.6 }, rogue: { p: [7.9, 4.0], t: [9.3, 5.7], s: 0.5 },
   };
@@ -405,7 +408,10 @@
       else if (id === 'sky') P.rico = 1;
       else if (id === 'rogue') P.crit += 0.15;
       else if (id === 'medic') P.regenRoom = 0.12;
-      else if (id === 'bling') P.bmult *= 1.1; }
+      else if (id === 'bling') P.bmult *= 1.1;
+      else if (id === 'storm') P.chain += 1;
+      else if (id === 'leaf') P.pierce += 1;
+      else if (id === 'gravity') P.boom *= 1.25; }
     for (const u of PERM) { const l = permLevel(ch.id, u.id); if (l) u.f(P, l); }       // shop upgrades for this monkey
     P.hp = P.hpMax;
   }
