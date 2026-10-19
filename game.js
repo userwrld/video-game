@@ -1,7 +1,7 @@
 // Monkeys vs Opps: clear rooms of Opps, pick one of three upgrades, beat a boss every 10 rooms. Stand still to shoot, move to dodge.
 // Drag anywhere with your thumb to move. Your monkey starts at the bottom, opps drop in from the top, and it auto-fires.
 (() => {
-  const VERSION = 'v29';
+  const VERSION = 'v30';
   const cv = document.getElementById('c'); let ctx = cv.getContext('2d'); const mainCtx = ctx;
   let W, H, S, AW, AH, dpr, hudY = 44, UIY = 0, UIB = 14;
   let RW = 0, RH = 0, camX = 0, camY = 0;                   // the room can be bigger than the screen; the camera follows you
@@ -1431,7 +1431,7 @@
     if (!bust && !(hasAim && w !== 'laser')) arm(-1, -r * 1.0 + Math.sin(walk) * r * 0.3 * mv, chestY + r * 0.85);
     ball(0, chestY, r * 0.95, cloth, 1.12, 0.95, -0.28);                                // torso in the monkey's outfit
     sv.fillStyle = skin; sv.beginPath(); sv.moveTo(-r * 0.3, chestY - r * 0.82); sv.lineTo(r * 0.3, chestY - r * 0.82); sv.lineTo(0, chestY - r * 0.3); sv.closePath(); sv.fill(); sv.strokeStyle = INK; sv.lineWidth = Math.max(1, r * 0.06); sv.stroke();
-    { const tee = ch.tee || 'plain', cy2 = chestY + r * 0.12;
+    { const tee = hasAim && sa < -0.3 && !bust ? 'plain' : (ch.tee || 'plain'), cy2 = chestY + r * 0.12;
       sv.save(); sv.beginPath(); sv.ellipse(0, chestY, r * 1.06, r * 0.9, 0, 0, 6.28); sv.clip();
       if (tee === 'stripes') { sv.fillStyle = 'rgba(255,255,255,.5)'; for (let i = 0; i < 4; i++) sv.fillRect(-r * 1.2, chestY - r * 0.1 + i * r * 0.26, r * 2.4, r * 0.12); }
       else if (tee === 'skull') { sv.fillStyle = '#f2efe6'; sv.beginPath(); sv.arc(0, cy2 + r * 0.05, r * 0.26, 0, 6.28); sv.fill(); sv.fillRect(-r * 0.14, cy2 + r * 0.2, r * 0.28, r * 0.16); sv.fillStyle = cloth; sv.beginPath(); sv.arc(-r * 0.1, cy2, r * 0.06, 0, 6.28); sv.arc(r * 0.1, cy2, r * 0.06, 0, 6.28); sv.fill(); }
@@ -1526,7 +1526,14 @@
       for (let i = 0; i < 4; i++) { const u = (tn * 0.55 + i * 0.25) % 1; sv.fillStyle = `rgba(215,215,225,${0.32 * (1 - u)})`; sv.beginPath(); sv.arc(r * 0.82 + Math.sin(u * 6 + i) * r * 0.22, -u * r * 1.3, r * (0.07 + u * 0.2), 0, 6.28); sv.fill(); }
       sv.restore();
     }
-    const acc = ch.acc;
+    const back = !bust && hasAim && sa < -0.3;                                              // aiming up the screen: the monkey turns its back to us and faces the opps
+    if (back) {
+      ball(0, -r * 0.02, r * 1.0, fur, 1.04, 1.04);
+      sv.save(); sv.beginPath(); sv.arc(0, 0, r * 0.98, 0, 6.28); sv.clip(); furTexture(r, fur, ch.name.length * 31); sv.restore();
+      sv.fillStyle = dk; sv.beginPath(); sv.ellipse(0, r * 0.52, r * 0.62, r * 0.26, 0, 0, Math.PI); sv.fill();                // nape
+      sv.strokeStyle = 'rgba(0,0,0,.25)'; sv.lineWidth = Math.max(1, r * 0.05); sv.beginPath(); sv.moveTo(0, -r * 0.85); sv.lineTo(0, r * 0.4); sv.stroke();
+    }
+    const acc = back && ['gasmask', 'visor', 'cyber', 'scar', 'phones'].includes(ch.acc) ? null : ch.acc;
     if (acc === 'phones') { sv.strokeStyle = '#1b1b24'; sv.lineWidth = r * 0.2; sv.lineCap = 'round'; sv.beginPath(); sv.arc(0, -r * 0.05, r * 1.04, Math.PI * 1.05, Math.PI * 1.95); sv.stroke(); ball(-r * 1.02, -r * 0.02, r * 0.32, '#ff4fd8'); ball(r * 1.02, -r * 0.02, r * 0.32, '#ff4fd8'); sv.fillStyle = '#5ef2ff'; sv.fillRect(-r * 0.62, -r * 0.3, r * 1.24, r * 0.2); sv.fillStyle = 'rgba(255,255,255,.5)'; sv.fillRect(-r * 0.55, -r * 0.27, r * 0.4, r * 0.04); }
     else if (acc === 'beanie') { ball(0, -r * 0.58, r * 0.98, '#7fc8e8', 1, 0.72, -0.4); sv.fillStyle = '#eaf9ff'; sv.fillRect(-r * 1.0, -r * 0.62, r * 2, r * 0.2); ball(0, -r * 1.2, r * 0.22, '#ffffff'); }
     else if (acc === 'gasmask') { ball(0, r * 0.42, r * 0.62, '#4a5160', 1, 0.78, -0.4); ball(-r * 0.52, r * 0.5, r * 0.2, '#2c303a'); ball(r * 0.52, r * 0.5, r * 0.2, '#2c303a'); sv.strokeStyle = '#8bff5a'; sv.lineWidth = Math.max(1.5, r * 0.07); for (const sx of [-1, 1]) { sv.beginPath(); sv.arc(sx * r * 0.3, -r * 0.1, r * 0.24, 0, 6.28); sv.stroke(); sv.fillStyle = 'rgba(139,255,90,.25)'; sv.fill(); } sv.fillStyle = '#2c303a'; sv.fillRect(-r * 0.98, -r * 0.5, r * 1.96, r * 0.12); }
