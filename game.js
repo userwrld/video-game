@@ -1,7 +1,7 @@
 // Monkeys vs Opps: clear rooms of Opps, pick one of three upgrades, beat a boss every 10 rooms. Stand still to shoot, move to dodge.
 // Drag anywhere with your thumb to move. Your monkey starts at the bottom, opps drop in from the top, and it auto-fires.
 (() => {
-  const VERSION = 'v66';
+  const VERSION = 'v67';
   const cv = document.getElementById('c'); let ctx = cv.getContext('2d'); const mainCtx = ctx;
   let W, H, S, AW, AH, dpr, hudY = 44, UIY = 0, UIB = 14;
   let RW = 0, RH = 0, camX = 0, camY = 0;                   // the room can be bigger than the screen; the camera follows you
@@ -15,7 +15,7 @@
     return [Math.round(top), Math.round(bottom)];
   }
   function resize() {
-    dpr = Math.min(window.devicePixelRatio || 1, 1.5);                      // a lighter canvas keeps phones cool; the art stays sharp enough at this size
+    dpr = Math.min(window.devicePixelRatio || 1, 1.15);                      // a lighter canvas keeps phones cool; the art stays sharp enough at this size
     const stage = cv.parentElement; stage.style.height = '';                         // the stage fills the viewport exactly; never taller than what is visible
     W = cv.clientWidth || innerWidth; H = cv.clientHeight || innerHeight;
     S = Math.min(W / 360, H / 640);
@@ -3150,7 +3150,7 @@
   // ---------- loop ----------
   let last = performance.now();
   (function loop(now) {
-    if (now - last < 14) { requestAnimationFrame(loop); return; }                 // 120 Hz phones draw at 60: half the heat, same feel
+    if (now - last < 30) { requestAnimationFrame(loop); return; }                 // 30 frames a second: half the work of 60, which keeps the phone cool
     const dt = Math.min(0.05, (now - last) / 1000); last = now;
     try { if (dt > 0.026) { update(dt / 2); update(dt / 2); } else update(dt); draw(now); }
     catch (err) {                                   // never freeze on a bad frame: drop back to the menu and keep running
