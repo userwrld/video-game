@@ -1,7 +1,7 @@
 // Monkeys vs Opps: clear rooms of Opps, pick one of three upgrades, beat a boss every 10 rooms. Stand still to shoot, move to dodge.
 // Drag anywhere with your thumb to move. Your monkey starts at the bottom, opps drop in from the top, and it auto-fires.
 (() => {
-  const VERSION = 'v30';
+  const VERSION = 'v31';
   const cv = document.getElementById('c'); let ctx = cv.getContext('2d'); const mainCtx = ctx;
   let W, H, S, AW, AH, dpr, hudY = 44, UIY = 0, UIB = 14;
   let RW = 0, RH = 0, camX = 0, camY = 0;                   // the room can be bigger than the screen; the camera follows you
@@ -855,9 +855,34 @@
   }
 
 
+  function drawEItem(b) {                                                  // thrown junk and laser bolts
+    const g = ctx, k = b.it; g.save(); g.translate(b.x, b.y);
+    if (k === 'laser') {
+      g.rotate(Math.atan2(b.vy, b.vx)); glowAt(0, 0, 18, '#ff3d5a', 0.7);
+      g.fillStyle = '#ff3d5a'; rr(-12, -2.6, 24, 5.2, 2.6); g.fill(); g.fillStyle = '#fff'; rr(-10, -1, 20, 2, 1); g.fill();
+    } else {
+      g.rotate(b.rot); g.lineWidth = 1.6; g.strokeStyle = INK; g.lineJoin = 'round'; g.lineCap = 'round';
+      if (k === 'chair') {
+        g.fillStyle = '#b07a3c'; g.fillRect(-8, -2, 16, 6); g.strokeRect(-8, -2, 16, 6);
+        g.fillRect(-8, -11, 4, 9); g.strokeRect(-8, -11, 4, 9); g.fillRect(-7, 4, 3, 8); g.fillRect(4, 4, 3, 8);
+      } else if (k === 'barrel') {
+        g.fillStyle = '#8a5a2b'; rr(-7, -9, 14, 18, 4); g.fill(); g.stroke(); g.strokeStyle = '#2a1a10'; g.beginPath(); g.moveTo(-7, -3); g.lineTo(7, -3); g.moveTo(-7, 3); g.lineTo(7, 3); g.stroke();
+      } else if (k === 'crate') {
+        g.fillStyle = '#c9965a'; g.fillRect(-8, -8, 16, 16); g.strokeRect(-8, -8, 16, 16); g.strokeStyle = '#8a5a2b'; g.beginPath(); g.moveTo(-8, -8); g.lineTo(8, 8); g.moveTo(8, -8); g.lineTo(-8, 8); g.stroke();
+      } else if (k === 'tv') {
+        g.fillStyle = '#3a3f4a'; rr(-9, -7, 18, 14, 2); g.fill(); g.stroke(); g.fillStyle = '#7fd6ff'; g.fillRect(-6, -4, 12, 8);
+      } else {
+        g.fillStyle = '#222'; g.beginPath(); g.arc(0, 0, 8, 0, 6.28); g.fill(); g.stroke(); g.fillStyle = '#6a6f7a'; g.beginPath(); g.arc(0, 0, 3.2, 0, 6.28); g.fill();
+      }
+    }
+    g.restore();
+  }
+  const E_ITEMS = ['chair', 'barrel', 'crate', 'laser', 'tv', 'tire', 'laser', 'chair'];
   function enemyShot(e) {
     const a = Math.atan2(P.y - e.y, P.x - e.x), g = e.gun, dm = e.bdmg;
-    const b = (an, sp, d = dm, r = 5, life = 5) => ebul.push({ x: e.x + Math.cos(an) * e.r, y: e.y + Math.sin(an) * e.r, vx: Math.cos(an) * sp, vy: Math.sin(an) * sp, dmg: d, r, life });
+    let it = Math.random() < 0.65 ? E_ITEMS[Math.floor(Math.random() * E_ITEMS.length)] : null;       // opps hurl whatever's lying around: chairs, barrels, crates, laser bolts...
+    if (g === 'shotgun') it = null;
+    const b = (an, sp, d = dm, r = 5, life = 5) => ebul.push({ x: e.x + Math.cos(an) * e.r, y: e.y + Math.sin(an) * e.r, vx: Math.cos(an) * sp, vy: Math.sin(an) * sp, dmg: d, r: it && it !== 'laser' ? Math.max(r, 8) : r, life, it, rot: Math.random() * 6.28, ang: an });
     fx.push({ k: 'm', x: e.x + Math.cos(a) * e.r * 1.4, y: e.y + Math.sin(a) * e.r * 1.4, life: 0.07, max: 0.07 });
     if (g === 'pistol') { b(a, 190); e.cd = rand(2.4, 3.4); }
     else if (g === 'rifle') { b(a, 320, dm * 1.3, 4); e.cd = rand(1.8, 2.6); }
@@ -1046,6 +1071,7 @@
     { const ox = P.x, oy = P.y; moveBy(P, P.vx * dt, P.vy * dt, P.r * 0.8);
       if (Math.abs(P.x - ox) < Math.abs(P.vx * dt) * 0.5) P.vx *= 0.35;                  // sliding along cover instead of grinding into it
       if (Math.abs(P.y - oy) < Math.abs(P.vy * dt) * 0.5) P.vy *= 0.35; }
+    P.face = il > 0.15 ? Math.atan2(iy, ix) : P.aim;                                    // the body turns the way the stick points; the arm still tracks the opps
     P.x = clamp(P.x, PAD + P.r, RW - PAD - P.r);
     P.y = clamp(P.y, TOP + P.r, RH - BOT - P.r * 3.5);
     P.inv = Math.max(0, P.inv - dt); P.sl = Math.max(0, (P.sl || 0) - dt);
@@ -1218,7 +1244,7 @@
     // enemy bullets
     for (const b of ebul) {
       if (b.home) { const sp = Math.hypot(b.vx, b.vy), cur = Math.atan2(b.vy, b.vx); let da = Math.atan2(P.y - b.y, P.x - b.x) - cur; da = Math.atan2(Math.sin(da), Math.cos(da)); const na = cur + clamp(da, -dt * b.home, dt * b.home); b.vx = Math.cos(na) * sp; b.vy = Math.sin(na) * sp; if (Math.random() < 0.5) fx.push({ k: 'p', x: b.x, y: b.y, vx: 0, vy: 0, life: 0.25, max: 0.25, col: '#ffb347' }); }
-      b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt;
+      b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt; if (b.it) b.rot += dt * 9;
       if (b.x < 0 || b.x > RW || b.y < 0 || b.y > RH) b.life = 0;
       else if (walls.length) { const wl = inWall(b.x, b.y, b.r); if (wl) { b.life = 0; if (wl.max) damageWall(wl, b.dmg * 0.6); } }
       if (Math.hypot(P.x - b.x, P.y - b.y) < P.r - 2 + b.r && P.inv <= 0) { b.life = 0; hurtPlayer(b.dmg); }
@@ -1401,7 +1427,7 @@
   }
   function fangs(r, y, w) { ctx.fillStyle = '#f7f3e6'; for (const sx of [-1, 1]) { ctx.beginPath(); ctx.moveTo(sx * w, y); ctx.lineTo(sx * (w + r * 0.12), y); ctx.lineTo(sx * (w + r * 0.06), y + r * 0.2); ctx.fill(); } }
 
-  function drawApe(g, x, y, r, ch, aim, bob = 0, walk = 0, mv = 0, swing = 0, bust = false) {
+  function drawApe(g, x, y, r, ch, aim, bob = 0, walk = 0, mv = 0, swing = 0, bust = false, face = null) {
     const sv = ctx; sv.save(); sv.translate(x, y + bob + Math.abs(Math.sin(walk)) * r * 0.1 * mv);
     const fur = ch.fur, skin = ch.skin, dark = shade(fur, -0.25);
     const hasAim = aim != null, w = ch.weapon;
@@ -1431,7 +1457,7 @@
     if (!bust && !(hasAim && w !== 'laser')) arm(-1, -r * 1.0 + Math.sin(walk) * r * 0.3 * mv, chestY + r * 0.85);
     ball(0, chestY, r * 0.95, cloth, 1.12, 0.95, -0.28);                                // torso in the monkey's outfit
     sv.fillStyle = skin; sv.beginPath(); sv.moveTo(-r * 0.3, chestY - r * 0.82); sv.lineTo(r * 0.3, chestY - r * 0.82); sv.lineTo(0, chestY - r * 0.3); sv.closePath(); sv.fill(); sv.strokeStyle = INK; sv.lineWidth = Math.max(1, r * 0.06); sv.stroke();
-    { const tee = hasAim && sa < -0.3 && !bust ? 'plain' : (ch.tee || 'plain'), cy2 = chestY + r * 0.12;
+    { const tee = hasAim && (face != null ? Math.sin(face) : sa) < -0.3 && !bust ? 'plain' : (ch.tee || 'plain'), cy2 = chestY + r * 0.12;
       sv.save(); sv.beginPath(); sv.ellipse(0, chestY, r * 1.06, r * 0.9, 0, 0, 6.28); sv.clip();
       if (tee === 'stripes') { sv.fillStyle = 'rgba(255,255,255,.5)'; for (let i = 0; i < 4; i++) sv.fillRect(-r * 1.2, chestY - r * 0.1 + i * r * 0.26, r * 2.4, r * 0.12); }
       else if (tee === 'skull') { sv.fillStyle = '#f2efe6'; sv.beginPath(); sv.arc(0, cy2 + r * 0.05, r * 0.26, 0, 6.28); sv.fill(); sv.fillRect(-r * 0.14, cy2 + r * 0.2, r * 0.28, r * 0.16); sv.fillStyle = cloth; sv.beginPath(); sv.arc(-r * 0.1, cy2, r * 0.06, 0, 6.28); sv.arc(r * 0.1, cy2, r * 0.06, 0, 6.28); sv.fill(); }
@@ -1526,7 +1552,7 @@
       for (let i = 0; i < 4; i++) { const u = (tn * 0.55 + i * 0.25) % 1; sv.fillStyle = `rgba(215,215,225,${0.32 * (1 - u)})`; sv.beginPath(); sv.arc(r * 0.82 + Math.sin(u * 6 + i) * r * 0.22, -u * r * 1.3, r * (0.07 + u * 0.2), 0, 6.28); sv.fill(); }
       sv.restore();
     }
-    const back = !bust && hasAim && sa < -0.3;                                              // aiming up the screen: the monkey turns its back to us and faces the opps
+    const fsa = face != null ? Math.sin(face) : sa, back = !bust && hasAim && fsa < -0.3;                                              // aiming up the screen: the monkey turns its back to us and faces the opps
     if (back) {
       ball(0, -r * 0.02, r * 1.0, fur, 1.04, 1.04);
       sv.save(); sv.beginPath(); sv.arc(0, 0, r * 0.98, 0, 6.28); sv.clip(); furTexture(r, fur, ch.name.length * 31); sv.restore();
@@ -2242,7 +2268,7 @@
       ctx.globalAlpha = blink ? 0.35 : 1;
       { const bw = 40, bx = P.x - bw / 2, by = P.y - P.r * 2.2, hp = clamp(P.hp / P.hpMax, 0, 1); ctx.fillStyle = 'rgba(0,0,0,.7)'; ctx.fillRect(bx - 1, by - 1, bw + 2, 7); ctx.fillStyle = hp > 0.35 ? '#5fe070' : '#ff6a5a'; ctx.fillRect(bx, by, bw * hp, 5); }
       ctx.save(); ctx.translate(P.x, P.y + P.r * 2.6); ctx.rotate(clamp((P.vx || 0) / Math.max(1, P.speed), -1, 1) * 0.1); ctx.translate(0, -P.r * 2.6); ctx.scale(1.3, 1.3);
-      drawApe(ctx, 0, 0, P.r, P.ch, P.aim, 0, P.walk || 0, P.mv || 0, (P.sl || 0) > 0 ? ((P.sl / 0.14) * 1.5 - 0.75) * -1 : 0);
+      drawApe(ctx, 0, 0, P.r, P.ch, P.aim, 0, P.walk || 0, P.mv || 0, (P.sl || 0) > 0 ? ((P.sl / 0.14) * 1.5 - 0.75) * -1 : 0, false, P.face);
       ctx.restore();
       ctx.globalAlpha = 1;
     } });
@@ -2283,7 +2309,7 @@
         if (b.elem === 'ice') { ctx.fillStyle = '#eaf9ff'; ctx.beginPath(); ctx.moveTo(b.x + Math.cos(Math.atan2(b.vy, b.vx)) * b.r * 1.8, b.y + Math.sin(Math.atan2(b.vy, b.vx)) * b.r * 1.8); ctx.lineTo(b.x - b.vy / 200 * b.r, b.y + b.vx / 200 * b.r); ctx.lineTo(b.x + b.vy / 200 * b.r, b.y - b.vx / 200 * b.r); ctx.fill(); }
       } else { glowAt(b.x, b.y, b.r * 6, b.col, 0.9); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(b.x, b.y, b.r * 0.6, 0, 6.28); ctx.fill(); }
     }
-    for (const b of ebul) { glowAt(b.x, b.y, b.r * 5, '#ff4d6d', 0.8); ctx.fillStyle = '#ff4d6d'; ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, 6.28); ctx.fill(); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(b.x, b.y, b.r * 0.4, 0, 6.28); ctx.fill(); }
+    for (const b of ebul) { if (b.it) { drawEItem(b); continue; } glowAt(b.x, b.y, b.r * 5, '#ff4d6d', 0.8); ctx.fillStyle = '#ff4d6d'; ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, 6.28); ctx.fill(); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(b.x, b.y, b.r * 0.4, 0, 6.28); ctx.fill(); }
     ctx.restore();
 
     if (state === 'play' && run.room === 1 && bannerT > 0 && !joy.on) { txt('Drag to move. Stop to shoot.', AW / 2, AH - BOT - 34, 14, 'rgba(255,255,255,.85)'); txt('Explore: Opps wake up when you get close.', AW / 2, AH - BOT - 14, 12, 'rgba(255,255,255,.75)'); }
