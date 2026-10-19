@@ -1,7 +1,7 @@
 // Monkeys vs Opps: clear rooms of Opps, pick one of three upgrades, beat a boss every 10 rooms. Stand still to shoot, move to dodge.
 // Drag anywhere with your thumb to move. Your monkey starts at the bottom, opps drop in from the top, and it auto-fires.
 (() => {
-  const VERSION = 'v43';
+  const VERSION = 'v44';
   const cv = document.getElementById('c'); let ctx = cv.getContext('2d'); const mainCtx = ctx;
   let W, H, S, AW, AH, dpr, hudY = 44, UIY = 0, UIB = 14;
   let RW = 0, RH = 0, camX = 0, camY = 0;                   // the room can be bigger than the screen; the camera follows you
@@ -43,11 +43,11 @@
 
   // ---------- save data ----------
   let save = { ban: 0, owned: { blaze: 1, gunner: 1 }, best: 0, sel: 0, perm: {}, snap: null, stats: { kills: 0, rooms: 0, bosses: 0, coins: 0, runs: 0, evos: 0, flawless: 0, played: {} }, ach: {}, set: { sfx: 1, music: 1, shake: 1, vib: 1 } };
-  const CHAR_IDS = ['blaze', 'gunner', 'volt', 'frost', 'toxic', 'thunder', 'tank', 'shadow', 'plasma', 'chaos', 'slash', 'don', 'disco', 'robin', 'dyna'], PERM_IDS = ['lvl', 'hp', 'dmg', 'rate', 'spd', 'ban', 'crit'];
+  const CHAR_IDS = ['blaze', 'gunner', 'volt', 'frost', 'toxic', 'thunder', 'tank', 'shadow', 'plasma', 'chaos', 'slash', 'don', 'disco', 'robin', 'dyna', 'royal', 'crimson', 'sky', 'rogue'], PERM_IDS = ['lvl', 'hp', 'dmg', 'rate', 'spd', 'ban', 'crit'];
   try {
     const raw = JSON.parse(localStorage.getItem('monkey-opps') || localStorage.getItem('banana-breach') || '{}');       // only accept values of the expected shape
     const num = (v, max) => (Number.isFinite(v) ? Math.min(max, Math.max(0, Math.floor(v))) : 0);
-    save.ban = num(raw.ban, 1e9); save.best = num(raw.best, 1e6); save.sel = num(raw.sel, 14);
+    save.ban = num(raw.ban, 1e9); save.best = num(raw.best, 1e6); save.sel = num(raw.sel, 18);
     if (raw.owned && typeof raw.owned === 'object') for (const id of CHAR_IDS) if (raw.owned[id] === 1) save.owned[id] = 1;
     if (raw.stats && typeof raw.stats === 'object') { for (const k of ['kills', 'rooms', 'bosses', 'coins', 'runs', 'evos', 'flawless']) save.stats[k] = num(raw.stats[k], 1e9); if (raw.stats.played && typeof raw.stats.played === 'object') for (const id of CHAR_IDS) if (raw.stats.played[id]) save.stats.played[id] = 1; }
     if (raw.ach && typeof raw.ach === 'object') for (const k of Object.keys(raw.ach).slice(0, 40)) if (raw.ach[k] === 1 && /^[a-z0-9_]{1,24}$/.test(k)) save.ach[k] = 1;
@@ -142,6 +142,10 @@
     { tee: 'stripes', held: 'gum', mouth: 'grin', ring: 1, bg: '#f7a8e8', cloth: '#ff4fd8', id: 'disco',   name: 'Disco Monkey',   short: 'Disco',   role: 'CDs',           weapon: 'cd',     cost: 4500,  fur: '#9b5de5', skin: '#f0c8ff', acc: 'phones', hp: 105, spd: 158, ability: 'nova',   passive: 'Discs bounce twice', weak: 'Slow discs', blurb: 'Spins records. Throws CDs that slice through crowds.' },
     { tee: 'plain', held: 'pick', mouth: 'smirk', bg: '#9ed3a0', cloth: '#3d6a30', id: 'robin',   name: 'Robin Monkey',   short: 'Robin',   role: 'Archery',       weapon: 'bow',    cost: 5500,  fur: '#4f7a3a', skin: '#d9c9a0', acc: 'hood',   hp: 100, spd: 162, ability: 'strike', passive: 'Arrows pierce twice', weak: 'Slow fire rate', blurb: 'A hooded hunter. Fast arrows punch through whole lines.' },
     { tee: 'vest', mouth: 'grin', bg: '#f6c36a', cloth: '#e0a020', id: 'dyna',    name: 'Dyna Monkey',    short: 'Dyna',    role: 'Explosives',    weapon: 'nade',   cost: 7000,  fur: '#c4602d', skin: '#f0c8a0', acc: 'hardhat', hp: 115, spd: 148, ability: 'nova',  passive: 'Big blasts', weak: 'Fuse delay', blurb: 'Lobs lit dynamite. Everything nearby goes boom.' },
+    { tee: 'plain', mouth: 'flat', bg: '#2a58c8', cloth: '#e8e6e0', id: 'royal',   name: 'Royal Monkey',   short: 'Royal',   role: 'Royal guard',   weapon: 'plasma', cost: 18000, fur: '#8a4a28', skin: '#e0b48a', acc: 'visor',  hp: 140, spd: 148, ability: 'shield', passive: '10% less damage taken', weak: 'Slower than the rest', blurb: 'Calm, armoured and golden. Takes hits like a king.' },
+    { tee: 'cyber', mouth: 'flat', bg: '#d02030', cloth: '#15151c', id: 'crimson', name: 'Crimson Monkey', short: 'Crimson', role: 'Assault rifle', weapon: 'tommy',  cost: 6500,  fur: '#6a4430', skin: '#d9b48a', acc: 'cyberRed', hp: 105, spd: 156, ability: 'frenzy', passive: '+15% crit chance', weak: 'Messy aim', blurb: 'Red-lit special forces. Sprays a wall of bullets.' },
+    { tee: 'plain', mouth: 'grin', bg: '#2f8cf0', cloth: '#2a4aa8', id: 'sky',     name: 'Sky Monkey',     short: 'Sky',     role: 'CDs',           weapon: 'cd',     cost: 7500,  fur: '#1d1d24', skin: '#d9a078', acc: 'phones', hp: 105, spd: 160, ability: 'nova',   passive: 'Discs bounce once more', weak: 'Slow to kill', blurb: 'Headphones on, thumbs up. Throws discs that bounce.' },
+    { tee: 'cyber', mouth: 'flat', bg: '#b01040', cloth: '#15151c', id: 'rogue',   name: 'Rogue Monkey',   short: 'Rogue',   role: 'Stealth',       weapon: 'shadow', cost: 9500,  fur: '#6a4430', skin: '#d9b48a', acc: 'cyberRed', hp: 100, spd: 166, ability: 'blink',  passive: '+15% crit chance', weak: 'Low health', blurb: 'Red-neon operative who slips in and out of the dark.' },
   ];
 
   // ---------- upgrades ----------
@@ -358,7 +362,11 @@
       else if (id === 'plasma') P.boom *= 1.25;
       else if (id === 'disco') P.rico = 2;
       else if (id === 'robin') P.pierce += 1;
-      else if (id === 'dyna') P.boom *= 1.2; }
+      else if (id === 'dyna') P.boom *= 1.2;
+      else if (id === 'royal') P.dr += 0.1;
+      else if (id === 'crimson') P.crit += 0.15;
+      else if (id === 'sky') P.rico = 1;
+      else if (id === 'rogue') P.crit += 0.15; }
     for (const u of PERM) { const l = permLevel(ch.id, u.id); if (l) u.f(P, l); }       // shop upgrades for this monkey
     P.hp = P.hpMax;
   }
