@@ -1,7 +1,7 @@
 // Monkeys vs Opps: clear rooms of Opps, pick one of three upgrades, beat a boss every 10 rooms. Stand still to shoot, move to dodge.
 // Drag anywhere with your thumb to move. Your monkey starts at the bottom, opps drop in from the top, and it auto-fires.
 (() => {
-  const VERSION = 'v65';
+  const VERSION = 'v66';
   const cv = document.getElementById('c'); let ctx = cv.getContext('2d'); const mainCtx = ctx;
   let W, H, S, AW, AH, dpr, hudY = 44, UIY = 0, UIB = 14;
   let RW = 0, RH = 0, camX = 0, camY = 0;                   // the room can be bigger than the screen; the camera follows you
@@ -356,7 +356,7 @@
     const sp = Math.max(1, P.speed), mvx = (P.vx || 0) / sp, moving = (P.mv || 0) > 0.12;
     P.flip = (cfg.f || 1) * (enemies.length ? (Math.cos(P.aim) < 0 ? -1 : 1) : (moving && Math.abs(mvx) > 0.25 ? Math.sign(mvx) : (Math.cos(P.aim) < 0 ? -1 : 1)));
     const la = P.flip > 0 ? P.aim : Math.PI - P.aim, phi = Math.atan2((cfg.t[1] - cfg.p[1]) * h, (cfg.t[0] - cfg.p[0]) * w);
-    let d = la - phi; d = Math.atan2(Math.sin(d), Math.cos(d)); P.tilt = enemies.length ? 0.12 + Math.sin(la) * 0.05 : 0; P.headA = enemies.length ? Math.sin(la) * 0.45 : 0; P.rotA = 0; P.armT = enemies.length ? clamp(d, -1.3, 1.3) : 0; P.armA = (P.armA || 0) + (P.armT - (P.armA || 0)) * 0.35;
+    let d = la - phi; d = Math.atan2(Math.sin(d), Math.cos(d)); P.tilt = enemies.length ? 0.12 + Math.sin(la) * 0.05 : 0; P.headA = enemies.length ? -0.14 + Math.sin(la) * 0.3 : -0.08; P.rotA = 0; P.armT = enemies.length ? clamp(d, -1.3, 1.3) : 0; P.armA = (P.armA || 0) + (P.armT - (P.armA || 0)) * 0.35;
   }
   function heroMuzzle(a) {                                               // the tip of the weapon (or the palm) in the world, where shots come from
     const art = heroArt(P.ch.id), cfg = HERO_ART[P.ch.id];
