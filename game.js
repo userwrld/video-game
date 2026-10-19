@@ -1,7 +1,7 @@
 // Monkeys vs Opps: clear rooms of Opps, pick one of three upgrades, beat a boss every 10 rooms. Stand still to shoot, move to dodge.
 // Drag anywhere with your thumb to move. Your monkey starts at the bottom, opps drop in from the top, and it auto-fires.
 (() => {
-  const VERSION = 'v57';
+  const VERSION = 'v58';
   const cv = document.getElementById('c'); let ctx = cv.getContext('2d'); const mainCtx = ctx;
   let W, H, S, AW, AH, dpr, hudY = 44, UIY = 0, UIB = 14;
   let RW = 0, RH = 0, camX = 0, camY = 0;                   // the room can be bigger than the screen; the camera follows you
@@ -524,7 +524,7 @@
       e = { kind, boss: 1, bn, r: 52 * ESC * 0.7, hp, max: hp, sp: 30, dmg: 20 + bn * 6, bdmg: 9 + bn * 3.5, val: 40 * bn, col: '#e84393', pt: 2, sum: 6 };
     } else {
       const T = TYPES[kind];
-      e = { kind, r: T.r * ESC, hp: T.hp * hs, max: T.hp * hs, sp: T.sp, dmg: T.dmg * ds, bdmg: 6 * ds, val: T.val, col: T.col, cd: rand(1, 2), st: 0, stt: 0 };
+      e = { kind, r: T.r, hp: T.hp * hs, max: T.hp * hs, sp: T.sp, dmg: T.dmg * ds, bdmg: 6 * ds, val: T.val, col: T.col, cd: rand(1, 2), st: 0, stt: 0 };
     }
     const LK = { runt: ['monkey', 'rat', 'bat'], brute: ['gorilla', 'boar'], tank: ['rhino', 'hippo'], shooter: ['parrot', 'mandrill'], dasher: ['jaguar', 'wolf'], swarm: ['rat', 'monkey', 'bat'], shield: ['gorilla', 'boar', 'rhino'], bomber: ['monkey', 'rat', 'mandrill'], sniper: ['parrot', 'mandrill', 'wolf'], giant: ['gorilla', 'rhino', 'hippo'], clone: ['kingShadow'] };
     if (kind !== 'boss') {
